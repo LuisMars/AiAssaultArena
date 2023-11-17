@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34302.71
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Web", "AiAssaultArena.Web\AiAssaultArena.Web.csproj", "{3203FF2C-E2C5-4148-8747-FAC48FF5ACB2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Extended.Graphics", "MonoGame.Extended.Graphics\MonoGame.Extended.Graphics.csproj", "{E8B215E0-B49A-450E-88CD-210AA66CBEE7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MonoGame.Extended", "MonoGame.Extended\MonoGame.Extended.csproj", "{40FB9115-BD50-4AFF-838D-F0E743822244}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Simulation", "AiAssaultArena.Simulation\AiAssaultArena.Simulation.csproj", "{18844B18-E638-4DAA-AE86-0564741078A0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Contract", "AiAssaultArena.Contract\AiAssaultArena.Contract.csproj", "{035457C9-2FD0-4560-9781-89D0FDB03E5C}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{3203FF2C-E2C5-4148-8747-FAC48FF5ACB2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3203FF2C-E2C5-4148-8747-FAC48FF5ACB2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3203FF2C-E2C5-4148-8747-FAC48FF5ACB2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3203FF2C-E2C5-4148-8747-FAC48FF5ACB2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8B215E0-B49A-450E-88CD-210AA66CBEE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8B215E0-B49A-450E-88CD-210AA66CBEE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8B215E0-B49A-450E-88CD-210AA66CBEE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8B215E0-B49A-450E-88CD-210AA66CBEE7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40FB9115-BD50-4AFF-838D-F0E743822244}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40FB9115-BD50-4AFF-838D-F0E743822244}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40FB9115-BD50-4AFF-838D-F0E743822244}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40FB9115-BD50-4AFF-838D-F0E743822244}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18844B18-E638-4DAA-AE86-0564741078A0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18844B18-E638-4DAA-AE86-0564741078A0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18844B18-E638-4DAA-AE86-0564741078A0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18844B18-E638-4DAA-AE86-0564741078A0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D94BCF77-39FE-404A-9ABC-FFC18DC2340D}
+	EndGlobalSection
+EndGlobal
