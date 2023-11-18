@@ -1,36 +1,49 @@
 ﻿using AiAssaultArena.Contract;
+using AiAssaultArena.Contract.ClientDefinitions;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+using TypedSignalR.Client;
+
 namespace AiAssaultArena.Web.Arena;
 
-public class GameArena
+public class GameArena : IMatchHubClient
 {
     public GraphicsDeviceManager Graphics { get; set; }
     public SpriteBatch SpriteBatch { get; private set; }
     public EntityDrawer EntityDrawer { get; set; }
-    public List<TankResponse> Tanks { get; set; } = new(); 
+    public List<TankResponse> Tanks { get; set; } = new();
     public List<BulletResponse> Bullets { get; set; } = new();
     public List<ArenaWallResponse> Walls { get; set; } = new();
 
+    private readonly HubConnection _hubConnection;
     public GameArena(GraphicsDeviceManager graphics)
     {
         Graphics = graphics;
+        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match").Build();
+        _hubConnection.Register<IMatchHubClient>(this);
+        _hubConnection.StartAsync();
+    }
+
+    public Task GetParameters(ParametersResponse parameters)
+    {
+        EntityDrawer = new EntityDrawer(SpriteBatch, new ParametersResponse());
+        return Task.CompletedTask;
     }
 
     public void LoadContent(SpriteBatch spriteBatch)
     {
-        SpriteBatch = spriteBatch;
-        EntityDrawer = new EntityDrawer(spriteBatch, new ParametersResponse());
+        SpriteBatch = spriteBatch; 
     }
 
     public void Draw(GameTime gameTime)
     {
         Graphics.GraphicsDevice.Clear(Color.Black);
 
-        if (SpriteBatch is null)
+        if (SpriteBatch is null || EntityDrawer is null)
         {
             return;
         }

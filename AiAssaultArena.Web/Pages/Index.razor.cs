@@ -1,6 +1,9 @@
+using AiAssaultArena.Contract;
+using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
 using Microsoft.Xna.Framework;
 using System;
+using System.Security.Cryptography;
 
 namespace AiAssaultArena.Web.Pages;
 public partial class Index

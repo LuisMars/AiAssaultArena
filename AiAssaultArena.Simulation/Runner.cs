@@ -2,7 +2,6 @@
 using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
 using AiAssaultArena.Simulation.Updaters;
-using System.Threading.Tasks;
 
 namespace AiAssaultArena.Simulation;
 public class Runner

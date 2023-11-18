@@ -13,6 +13,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Simulation",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Contract", "AiAssaultArena.Contract\AiAssaultArena.Contract.csproj", "{035457C9-2FD0-4560-9781-89D0FDB03E5C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Api", "AiAssaultArena.Api\AiAssaultArena.Api.csproj", "{922A3A73-A312-4504-8526-F90B106087E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{035457C9-2FD0-4560-9781-89D0FDB03E5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{922A3A73-A312-4504-8526-F90B106087E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{922A3A73-A312-4504-8526-F90B106087E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{922A3A73-A312-4504-8526-F90B106087E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{922A3A73-A312-4504-8526-F90B106087E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
