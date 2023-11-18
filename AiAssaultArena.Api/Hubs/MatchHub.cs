@@ -1,4 +1,5 @@
-﻿using AiAssaultArena.Contract;
+﻿using AiAssaultArena.Api.Services;
+using AiAssaultArena.Contract;
 using AiAssaultArena.Contract.ClientDefinitions;
 using Microsoft.AspNetCore.SignalR;
 using SignalRSwaggerGen.Attributes;
@@ -6,17 +7,19 @@ using SignalRSwaggerGen.Attributes;
 namespace AiAssaultArena.Api.Hubs;
 
 [SignalRHub]
-public class MatchHub : Hub<IMatchHubClient>
+public class MatchHub(GameSimulationService simulation) : Hub<IMatchHubClient>
 {
-    public async Task SendParameters(ParametersResponse parameters)
+    private readonly GameSimulationService _simulation = simulation;
+
+    public async Task OnParametersReceived(ParametersResponse parameters)
     {
-        await Clients.All.GetParameters(parameters);
+        await Clients.All.OnParametersReceived(parameters);
     }
 
     public override async Task OnConnectedAsync()
     {
-        var parameters = new ParametersResponse();
-        await Clients.Client(Context.ConnectionId).GetParameters(parameters); 
+        var parameters = _simulation.Parameters;
+        await Clients.Client(Context.ConnectionId).OnParametersReceived(parameters); 
         await base.OnConnectedAsync();
     }
 }

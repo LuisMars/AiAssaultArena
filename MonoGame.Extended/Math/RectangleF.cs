@@ -152,6 +152,22 @@ namespace MonoGame.Extended
         }
 
         /// <summary>
+        ///     Initializes a new instance of the <see cref="RectangleF" /> structure from the specified top-left xy-coordinate
+        ///     <see cref="float" />s, width <see cref="float" /> and height <see cref="float" />.
+        /// </summary>
+        /// <param name="x">The x-coordinate.</param>
+        /// <param name="y">The y-coordinate.</param>
+        /// <param name="width">The width.</param>
+        /// <param name="height">The height.</param>
+        public RectangleF((float X, float Y) topLeft, float width, float height)
+        {
+            X = topLeft.X;
+            Y = topLeft.Y;
+            Width = width;
+            Height = height;
+        }
+
+        /// <summary>
         ///     Initializes a new instance of the <see cref="RectangleF" /> structure from the specified top-left
         ///     <see cref="Point2" /> and the extents <see cref="Size2" />.
         /// </summary>
@@ -166,6 +182,13 @@ namespace MonoGame.Extended
         }
 
         public RectangleF(System.Numerics.Vector2 position, Size2 size)
+        {
+            X = position.X;
+            Y = position.Y;
+            Width = size.Width;
+            Height = size.Height;
+        }
+        public RectangleF((float X, float Y) position, Size2 size)
         {
             X = position.X;
             Y = position.Y;

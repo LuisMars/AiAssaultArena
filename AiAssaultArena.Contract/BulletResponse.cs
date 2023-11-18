@@ -3,7 +3,8 @@
 namespace AiAssaultArena.Contract;
 public record BulletResponse
 {
-    public Vector2 Position { get; set; }
-    public Vector2 Velocity { get; set; }
+    public Guid Id { get; set; }
+    public (float X, float Y) Position { get; set; }
+    public (float X, float Y) Velocity { get; set; }
     public Guid ShooterId { get; set; }
 }

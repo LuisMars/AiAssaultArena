@@ -1,14 +1,10 @@
-using AiAssaultArena.Contract;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.JSInterop;
-using Microsoft.Xna.Framework;
-using System;
-using System.Security.Cryptography;
 
 namespace AiAssaultArena.Web.Pages;
 public partial class Index
 {
-    Game _game;
+    MainGame _game;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -32,6 +28,7 @@ public partial class Index
 
         // run gameloop
         _game.Tick();
+        StateHasChanged();
     }
 
 }

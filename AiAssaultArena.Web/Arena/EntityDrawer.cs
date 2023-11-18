@@ -29,12 +29,13 @@ public class EntityDrawer
     public void DrawTank(TankResponse tank)
     {
         var origin = new Vector2(_parameters.Width / 2, _parameters.Height / 2);
-        var rectangle = new RectangleF(tank.Position, new Size2(_parameters.Width, _parameters.Height));
+        var rectangle = new RectangleF((tank.Position.X, tank.Position.Y), new Size2(_parameters.Width, _parameters.Height));
         _spriteBatch.DrawRectangle(rectangle, Color.Red, tank.BodyRotation, origin, 1f);
 
-        var end = tank.Position.ToVector2() + new Vector2(0, 50).Rotate(tank.BodyRotation + tank.TurretRotation);
-        _spriteBatch.DrawLine(tank.Position, end, Color.Red);
+        var position = new Vector2(tank.Position.X, tank.Position.Y);
+        var end = position + new Vector2(0, 50).Rotate(tank.BodyRotation + tank.TurretRotation);
+        _spriteBatch.DrawLine(position, end, Color.Red);
 
-        _spriteBatch.DrawCircle(tank.Position, 10, 10, Color.Wheat);
+        _spriteBatch.DrawCircle(position, 10, 10, Color.Wheat);
     }
 }

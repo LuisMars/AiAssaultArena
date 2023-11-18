@@ -19,4 +19,10 @@ public class ParametersResponse
     //BULLET
     public float Speed { get; set; } = 150f;
     public float Radius { get; set; }  = 5f;
+
+    //WALLS
+
+    public IEnumerable<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
+    public float ArenaWidth { get; set; }
+    public float ArenaHeight { get; set; }
 }

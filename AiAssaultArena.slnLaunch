@@ -1,0 +1,17 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Name": "AiAssaultArena.Web\\AiAssaultArena.Web.csproj",
+        "Action": "Start",
+        "DebugTarget": "AiAssaultArena.Web"
+      },
+      {
+        "Name": "AiAssaultArena.Api\\AiAssaultArena.Api.csproj",
+        "Action": "Start",
+        "DebugTarget": "http"
+      }
+    ]
+  }
+]

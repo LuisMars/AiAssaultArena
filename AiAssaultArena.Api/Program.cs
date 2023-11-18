@@ -1,4 +1,5 @@
 using AiAssaultArena.Api.Hubs;
+using AiAssaultArena.Api.Services;
 using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +13,16 @@ builder.Services.AddSwaggerGen(options =>
 {
     options.AddSignalRSwaggerGen();
 });
+
 builder.Services.AddSignalR();
+
+builder.Services.AddSingleton<GameSimulationService>();
+
 builder.Services.AddResponseCompression(opts =>
 {
     opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(new[] { "application/octet-stream" });
 });
+
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder => 

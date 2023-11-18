@@ -4,7 +4,9 @@
 @using nkast.Wasm.Canvas
 
 <PageTitle>AiAssaultArena.Web</PageTitle>
+<div style="height: 3rem">
 
+</div>
 <div id="canvasHolder" style="
     margin:0%;
     position: fixed;
@@ -15,5 +17,25 @@
     width:100vw;
     height:100vh;
 ">
-    <canvas id="theCanvas" style="touch-action:none;"></canvas>
+    <canvas id="theCanvas" style="touch-action:none;" ></canvas>
+</div>
+
+@if (_game is null || _game.Tanks is null)
+{
+    return;
+}
+
+<div style="position: absolute; top: 0; left: 0; color: white; background: #0008; padding: 1rem; margin: 1rem; border-radius: 1rem;">
+
+    @foreach (var tank in _game.Tanks)
+    {
+        <div>
+            <div>
+                @tank.Id
+            </div>
+            <div>
+                @tank.Health
+            </div>
+        </div>
+    }
 </div>

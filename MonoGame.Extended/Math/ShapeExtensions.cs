@@ -297,6 +297,11 @@ namespace MonoGame.Extended
             DrawPolygon(spriteBatch, center.ToVector2(), CreateCircle(radius, sides), color, thickness, layerDepth);
         }
 
+        public static void DrawCircle(this SpriteBatch spriteBatch, (float X, float Y) center, float radius, int sides, Color color, float thickness = 1f, float layerDepth = 0)
+        {
+            DrawPolygon(spriteBatch, new Vector2(center.X, center.Y), CreateCircle(radius, sides), color, thickness, layerDepth);
+        }
+
         /// <summary>
         /// Draw a circle
         /// </summary>

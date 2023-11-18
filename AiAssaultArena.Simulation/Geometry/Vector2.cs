@@ -1239,6 +1239,14 @@ public struct Vector2 : IEquatable<Vector2>
     /// <summary>
     /// Returns a <see cref="System.Numerics.Vector2"/>.
     /// </summary>
+    public readonly (float X, float Y) ToTuple()
+    {
+        return (X, Y);
+    }
+
+    /// <summary>
+    /// Returns a <see cref="System.Numerics.Vector2"/>.
+    /// </summary>
     public readonly System.Numerics.Vector2 ToNumerics()
     {
         return new System.Numerics.Vector2(X, Y);

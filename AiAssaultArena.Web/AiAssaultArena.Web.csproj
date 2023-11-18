@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <Compile Include="Arena\EntityDrawer.cs" />
-    <Compile Include="Arena\GameArena.cs" />
+    <Compile Include="Helpers\EnumerableHelpers.cs" />
     <Compile Include="Pages\Index.razor.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="MainGame.cs" />
