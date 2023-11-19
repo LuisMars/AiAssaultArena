@@ -34,7 +34,22 @@ public static class ResponseMappers
             TurretRotation = tank.TurretRotation,
             SensorRotation = tank.SensorRotation,
             Health = tank.Health,
-            AngularVelocity = tank.AngularVelocity
+            AngularVelocity = tank.AngularVelocity,
+            CurrentTurretHeat = tank.CurrentTurretHeat
+        };
+    }
+
+    public static SensorResponse? ToResponse(this SensorOutput? sensedTank)
+    {
+        if (sensedTank is null)
+        {
+            return null;
+        }
+        return new SensorResponse
+        {
+            Health = sensedTank.Tank.Health,
+            Position = sensedTank.Position.ToResponse(),
+            TankId = sensedTank.Tank.Id
         };
     }
 

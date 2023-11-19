@@ -7,6 +7,9 @@ public class TankUpdater
 {
     public static void Update(float deltaSeconds, TankEntity tank)
     {
+        tank.CurrentTurretHeat -= deltaSeconds;
+        tank.CurrentTurretHeat = MathF.Max(0, tank.CurrentTurretHeat);
+
         // Apply angular acceleration
         tank.AngularVelocity += tank.AngularAcceleration * deltaSeconds;
         tank.AngularVelocity = tank.AngularVelocity.Clamp(TankEntity.MaxAngularVelocity);

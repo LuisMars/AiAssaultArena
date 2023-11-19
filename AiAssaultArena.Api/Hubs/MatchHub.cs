@@ -1,4 +1,5 @@
-﻿using AiAssaultArena.Api.Services;
+﻿using AiAssaultArena.Api.Mappers;
+using AiAssaultArena.Api.Services;
 using AiAssaultArena.Contract;
 using AiAssaultArena.Contract.ClientDefinitions;
 using Microsoft.AspNetCore.SignalR;
@@ -7,7 +8,7 @@ using SignalRSwaggerGen.Attributes;
 namespace AiAssaultArena.Api.Hubs;
 
 [SignalRHub]
-public class MatchHub(GameSimulationService simulation) : Hub<IMatchClient>, IMatchClient
+public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ITankServer
 {
     private readonly GameSimulationService _simulation = simulation;
 
@@ -29,7 +30,7 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchClient>, IMa
         if (clientType == "Tank")
         {
             await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
-            _simulation.AddTank(Context.ConnectionId);
+            await _simulation.AddTankAsync(Context.ConnectionId);
         }
         else
         {
@@ -47,18 +48,8 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchClient>, IMa
         return Task.CompletedTask;
     }
 
-    public Task OnGameUpdated(GameStateResponse gameStateResponse)
+    public Task StartNew()
     {
-        return Task.CompletedTask;
-    }
-
-    public Task OnTankReceived(TankReceivedResponse response)
-    {
-        return Task.CompletedTask;
-    }
-
-    public Task OnTankStateUpdated(TankResponse gameStateResponse)
-    {
-        return Task.CompletedTask;
+        return _simulation.AddTankAsync(Context.ConnectionId);
     }
 }

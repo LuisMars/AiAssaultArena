@@ -8,7 +8,8 @@ public record TankResponse
     public float BodyRotation { get; set; }
     public float TurretRotation { get; set; }
     public float SensorRotation { get; set; }
-    public int Health { get; set; }
+    public float Health { get; set; }
     public Guid Id { get; set; }
     public float AngularVelocity { get; set; }
+    public float CurrentTurretHeat { get; set; }
 }

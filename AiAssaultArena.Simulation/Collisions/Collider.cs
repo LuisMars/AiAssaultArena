@@ -1,5 +1,6 @@
 ﻿using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
+using System.Collections;
 
 namespace AiAssaultArena.Simulation.Collisions;
 
@@ -158,6 +159,62 @@ public static class Collider
         return distance.LengthSquared() <= BulletEntity.Radius * BulletEntity.Radius;
     }
 
+    public static bool Senses(this TankEntity tank, TankEntity other, out Vector2 intersection, out float distanceSquared)
+    {
+        var sensorEnd = tank.Position + new Vector2(0, float.MaxValue).Rotate(tank.BodyRotation + tank.SensorRotation);
+        var cornersOther = GetCorners(other);
+        distanceSquared = float.MaxValue;
+        intersection = new Vector2();
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 rectLineStart = cornersOther[i];
+            Vector2 rectLineEnd = cornersOther[(i + 1) % 4];
+
+            if (LinesIntersect(tank.Position, sensorEnd, rectLineStart, rectLineEnd, out var localIntersection))
+            {
+                var localDistance = (tank.Position - localIntersection).LengthSquared();
+                if (localDistance < distanceSquared)
+                {
+                    distanceSquared = localDistance;
+                    intersection = localIntersection;
+                }
+            }
+        }
+                
+        return distanceSquared != float.MaxValue;
+    }
+
+    private static bool LinesIntersect(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersection)
+    {
+        intersection = new Vector2();
+
+        // Calculate the direction of the lines
+        Vector2 d1 = p2 - p1;
+        Vector2 d2 = p4 - p3;
+
+        // Calculate the cross-product
+        float cross = d1.X * d2.Y - d1.Y * d2.X;
+        if (MathF.Abs(cross) < 1e-8)
+        {
+            // Lines are parallel
+            return false;
+        }
+
+        // Compute the scalar for intersection point
+        Vector2 d3 = p1 - p3;
+        float t1 = (d3.X * d2.Y - d3.Y * d2.X) / cross;
+
+        // Check if the intersection point lies within the first line segment
+        if (t1 >= 0 && t1 <= 1)
+        {
+            intersection = p1 + t1 * d1;
+            return true;
+        }
+
+        return false;
+    }
+
+
     private static void AdjustVelocityAndRotation(TankEntity tank, Vector2 collisionNormal, float deltaSeconds, Vector2 collisionPoint)
     {
         var radius = CalculateCollisionRadius(tank, collisionPoint);
@@ -212,8 +269,8 @@ public static class Collider
         float angularImpulseMagnitude = r.Cross(impulse);
         tank.AngularVelocity += angularImpulseMagnitude * deltaSeconds / TankEntity.MomentOfInertia; // Adjusting angular velocity
     }
-        
-    private static IList<Vector2> GetCorners(TankEntity tank)
+
+    private static Vector2[] GetCorners(TankEntity tank)
     {
         var center = tank.Position;
         var width = TankEntity.Width;
@@ -246,7 +303,7 @@ public static class Collider
         return corners;
     }
 
-    private static IList<Vector2> GetAxes(IList<Vector2> corners)
+    private static List<Vector2> GetAxes(IList<Vector2> corners)
     {
         var axes = new List<Vector2>();
 

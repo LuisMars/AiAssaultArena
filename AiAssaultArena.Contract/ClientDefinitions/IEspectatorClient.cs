@@ -1,27 +1,29 @@
 ﻿namespace AiAssaultArena.Contract.ClientDefinitions;
 
-public interface IParameterClient
+public interface ISharedClient
 {
     Task OnParametersReceived(ParametersResponse parameters);
+    Task OnRoundEnd();
 }
 
-public interface IMatchHubClient : IParameterClient
+public interface IMatchHubClient : ISharedClient
 {
     Task OnGameUpdated(GameStateResponse gameStateResponse);
 }
 
-public interface ITankClient : IParameterClient
+public interface ITankClient : ISharedClient
 {
     Task OnTankReceived(TankReceivedResponse tankReceivedResponse);
-    Task OnTankStateUpdated(TankResponse gameStateResponse);
+    Task OnTankStateUpdated(TankResponse gameStateResponse, SensorResponse? sensorResponse);
 }
 
 public interface ITankServer
 {
     Task SendUpdate(TankMoveParameters parameters);
+    Task StartNew();
 }
 
-public interface IMatchClient : IMatchHubClient, ITankClient, ITankServer
+public interface IMatchServer : IMatchHubClient, ITankClient
 {
 
 }

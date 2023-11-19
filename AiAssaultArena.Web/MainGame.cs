@@ -61,6 +61,10 @@ public class MainGame : Game, IMatchHubClient
         return Task.CompletedTask;
     }
 
+    public Task OnRoundEnd()
+    {
+        return Task.CompletedTask;
+    }
 
     protected override void Initialize()
     {
