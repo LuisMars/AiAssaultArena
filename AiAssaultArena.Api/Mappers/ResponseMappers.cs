@@ -48,8 +48,8 @@ public static class ResponseMappers
         return new BulletResponse
         {
             Id = bullet.Id,
-            Position = bullet.Position.ToTuple(),
-            Velocity = bullet.Velocity.ToTuple(),
+            Position = bullet.Position.ToResponse(),
+            Velocity = bullet.Velocity.ToResponse(),
             ShooterId = bullet.ShooterId
         };
     }
@@ -59,7 +59,7 @@ public static class ResponseMappers
         return new GameStateResponse
         {
             Tanks = runner.Tanks.Select(t => t.ToResponse()),
-            Bullets = runner.Bullets.Select(t => t.ToResponse())
+            Bullets = runner.Bullets.Values.Select(t => t.ToResponse())
         };
     }
 }

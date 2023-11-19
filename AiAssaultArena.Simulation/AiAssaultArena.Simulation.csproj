@@ -7,4 +7,8 @@
     <OutputType>Library</OutputType>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\AiAssaultArena.Contract\AiAssaultArena.Contract.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -109,6 +109,11 @@ public static class MathHelper
         return Clamp(value, min, max);
     }
 
+    public static float Clamp(this float value, float max)
+    {
+        return Clamp(value, -max, max);
+    }
+
     /// <summary>
     /// Restricts a value to be within a specified range.
     /// </summary>

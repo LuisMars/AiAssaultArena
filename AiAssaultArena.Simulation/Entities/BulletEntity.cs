@@ -4,7 +4,7 @@ namespace AiAssaultArena.Simulation.Entities;
 
 public class BulletEntity
 {
-    public const float Speed = 150f;
+    public const float Speed = 300f;
     public const float Radius = 5f;
 
     public Guid Id { get; set; } = Guid.NewGuid();
@@ -12,10 +12,11 @@ public class BulletEntity
     public Vector2 Velocity { get; set; }
     public Guid ShooterId { get; set; }
 
-    public BulletEntity(Vector2 position, float rotation, Guid shooterId)
+    public BulletEntity(Vector2 position, Vector2 velocity, float rotation, Guid shooterId)
     {
         Position = position;
-        Velocity = new Vector2(0, Speed).Rotate(rotation);
+        Velocity = new Vector2(0, Speed).Rotate(rotation) + velocity;
+
         ShooterId = shooterId;
     }
 }

@@ -1,18 +1,21 @@
-﻿using AiAssaultArena.Simulation.Collisions;
+﻿using AiAssaultArena.Contract;
+using AiAssaultArena.Simulation.Collisions;
 using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
 using AiAssaultArena.Simulation.Updaters;
+using System.Collections.Concurrent;
 
 namespace AiAssaultArena.Simulation;
 public class Runner
 {
     public float Width { get; set; }
     public float Height { get; set; }
-    public List<TankEntity> Tanks { get; set; }
+    public List<TankEntity> Tanks { get; set; } = [];
     public List<ArenaWallEntity> Walls { get; set; }
-    public List<BulletEntity> Bullets { get; set; } = [];
+    public ConcurrentDictionary<Guid, BulletEntity> Bullets { get; set; } = [];
+    public bool IsWaiting => Tanks.Count < 2;
 
-    public Runner(float width, float height, List<TankEntity> tanks)
+    public Runner(float width, float height)
     {
         Width = width;
         Height = height;
@@ -24,7 +27,11 @@ public class Runner
             new (new Vector2(-50 - Width / 2, -Height / 2), 50, Height),
             new (new Vector2(Width / 2, -Height / 2), 50, Height),
         ];
-        Tanks = tanks;
+    }
+
+    public void AddTank(TankEntity tank)
+    {
+        Tanks.Add(tank);
     }
 
     private IEnumerable<(TankEntity, TankEntity)> MatchTanks()
@@ -50,15 +57,29 @@ public class Runner
             tankA.Collided(tankB, deltaSeconds);
         }
 
-        foreach (var bullet in Bullets.ToList())
+        foreach (var (bulletId, bullet) in Bullets)
         {
             if (Tanks.Any(tank => bullet.ShooterId != tank.Id && bullet.Collided(tank)) || Walls.Any(wall => bullet.Collided(wall)))
             {
-                Bullets.Remove(bullet);
+                Bullets.Remove(bulletId, out _);
             }
         }
 
         Tanks.ForEach(tank => TankUpdater.Update(deltaSeconds, tank));
-        Bullets.ForEach(bullet => BulletUpdater.Update(deltaSeconds, bullet));
+        Bullets.Values.ToList().ForEach(bullet => BulletUpdater.Update(deltaSeconds, bullet));
+    }
+
+    public void UpdateTank(TankEntity tankEntity, TankMoveParameters parameters)
+    {
+        var tank = Tanks.First(t => t.Id == tankEntity.Id);
+        tankEntity.Move(parameters);
+        if (parameters.Shoot)
+        {
+            var bullet = tankEntity.Shoot();
+            if (bullet != null)
+            {
+                Bullets[bullet.Id] = bullet;
+            }
+        }
     }
 }

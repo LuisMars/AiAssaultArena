@@ -24,6 +24,13 @@ public class MainGame : Game, IMatchHubClient
     public IEnumerable<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
     public ParametersResponse Parameters { get; set; }
 
+    private Texture2D Tracks { get; set; }
+    private Texture2D Body { get; set; }
+    private Texture2D Turret { get; set; }
+    private Texture2D Sensor { get; set; }
+    private Texture2D Bullet { get; set; }
+
+
     private readonly HubConnection _hubConnection;
     public GraphicsDeviceManager Graphics { get; private set; }
 
@@ -33,7 +40,7 @@ public class MainGame : Game, IMatchHubClient
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
 
-        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match").Build();
+        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match?clientType=Spectator").Build();
         _hubConnection.Register<IMatchHubClient>(this);
         _hubConnection.StartAsync();
     }
@@ -42,7 +49,7 @@ public class MainGame : Game, IMatchHubClient
     {
         Parameters = parameters;
         Walls = parameters.Walls;
-        EntityDrawer = new EntityDrawer(SpriteBatch, Parameters);
+        EntityDrawer = new EntityDrawer(SpriteBatch, Parameters, Tracks, Body, Turret, Sensor, Bullet);
 
         return Task.CompletedTask;
     }
@@ -64,6 +71,11 @@ public class MainGame : Game, IMatchHubClient
     {
         // Create a new SpriteBatch, which can be used to draw textures.
         SpriteBatch = new SpriteBatch(GraphicsDevice);
+        Tracks = Content.Load<Texture2D>("tracks");
+        Body = Content.Load<Texture2D>("body");
+        Turret = Content.Load<Texture2D>("turret");
+        Sensor = Content.Load<Texture2D>("sensor");
+        Bullet = Content.Load<Texture2D>("bullet");
     }
 
     protected override void UnloadContent()
@@ -127,7 +139,8 @@ public class MainGame : Game, IMatchHubClient
         SpriteBatch.Begin(transformMatrix: GetTransformMatrix());
         //SpriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(Graphics.GraphicsDevice.Viewport.Width / 2, Graphics.GraphicsDevice.Viewport.Height / 2, 0));
 
-        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, Color.Black);
+        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2 + 4, -Parameters.ArenaHeight / 2 + 4, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0.75f, 0.75f, 0.75f));
+        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0.5f, 0.5f, 0.5f));
         Tanks.ForEach(EntityDrawer.DrawTank);
         Bullets.ForEach(EntityDrawer.DrawBullet);
         //Walls.ForEach(EntityDrawer.DrawWall);

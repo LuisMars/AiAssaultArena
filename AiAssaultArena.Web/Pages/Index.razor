@@ -38,4 +38,20 @@
             </div>
         </div>
     }
+
+    @foreach (var bullet in _game.Bullets)
+    {
+        <div>
+            <div>
+                @bullet.Id
+            </div>
+            <div>
+                <span>@bullet.Position.X</span>
+                <span>@bullet.Position.Y</span>
+            </div>
+        </div>
+    }
+
+
+
 </div>

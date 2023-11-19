@@ -7,19 +7,16 @@ public class TankUpdater
 {
     public static void Update(float deltaSeconds, TankEntity tank)
     {
-        // Update the position based on the velocity
-        tank.Velocity += new Vector2(0, tank.Acceleration).Rotate(tank.BodyRotation) * deltaSeconds;
-
-        tank.Velocity = tank.Velocity.Truncate(TankEntity.MaxSpeed);
-
+        // Apply angular acceleration
+        tank.AngularVelocity += tank.AngularAcceleration * deltaSeconds;
+        tank.AngularVelocity = tank.AngularVelocity.Clamp(TankEntity.MaxAngularVelocity);
         // Apply angular friction to slow down angular velocity (angular damping)
         var angularFrictionFactor = MathF.Pow(TankEntity.AngularFriction, deltaSeconds);
         tank.AngularVelocity *= angularFrictionFactor;
-        tank.AngularVelocity = tank.AngularVelocity.ClampValue(-1, 1);
-        tank.BodyRotation += tank.AngularVelocity * deltaSeconds;
 
-        // Apply friction to slow down the tank
-        var frictionFactor = MathF.Pow(TankEntity.Friction, deltaSeconds);
+        tank.BodyRotation += tank.AngularVelocity * deltaSeconds;
+        tank.BodyRotation = NormalizeRotation(tank.BodyRotation);
+
 
         // Calculate the direction of the tank's forward movement
         var forwardDirection = new Vector2(1, 0).Rotate(tank.BodyRotation);
@@ -33,13 +30,29 @@ public class TankUpdater
             tank.Velocity -= forwardDirection * dotProduct * (1 - TankEntity.LateralDamping);
         }
 
+        // Update the position based on the velocity
+        tank.Velocity += new Vector2(0, tank.Acceleration).Rotate(tank.BodyRotation) * deltaSeconds;
+        tank.Velocity = tank.Velocity.Truncate(TankEntity.MaxSpeed);
+
         // Apply friction to slow down the tank
+        var frictionFactor = MathF.Pow(TankEntity.Friction, deltaSeconds);
         tank.Velocity *= frictionFactor;
+
+        // Update position
         tank.Position += tank.Velocity * deltaSeconds;
 
-        // Normalize rotations to stay within 0 to 2π radians
-        tank.BodyRotation = NormalizeRotation(tank.BodyRotation);
+        // Update turret
+        tank.TurretAngularVelocity += tank.TurretAngularAcceleration * deltaSeconds;
+        tank.TurretAngularVelocity = tank.TurretAngularVelocity.Clamp(TankEntity.MaxTurretAngularVelocity);
+        tank.TurretAngularVelocity *= angularFrictionFactor;
+        tank.TurretRotation += tank.TurretAngularVelocity * deltaSeconds;
         tank.TurretRotation = NormalizeRotation(tank.TurretRotation);
+
+        // Update turret
+        tank.SensorAngularVelocity += tank.SensorAngularAcceleration * deltaSeconds;
+        tank.SensorAngularVelocity = tank.SensorAngularVelocity.Clamp(TankEntity.MaxSensorAngularVelocity);
+        tank.SensorAngularVelocity *= angularFrictionFactor;
+        tank.SensorRotation += tank.SensorAngularVelocity * deltaSeconds;
         tank.SensorRotation = NormalizeRotation(tank.SensorRotation);
     }
 
