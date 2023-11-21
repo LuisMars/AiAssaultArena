@@ -9,6 +9,10 @@ public interface ISharedClient
 public interface IMatchHubClient : ISharedClient
 {
     Task OnGameUpdated(GameStateResponse gameStateResponse);
+    
+    Task OnTankConnected(string tankName, Guid tankId);
+
+    Task OnTankDisconnected(Guid tankId);
 }
 
 public interface ITankClient : ISharedClient
@@ -20,7 +24,16 @@ public interface ITankClient : ISharedClient
 public interface ITankServer
 {
     Task SendUpdate(TankMoveParameters parameters);
-    Task StartNew();
+}
+
+public interface IWebServer
+{
+    Task StartMatch(Guid tankAId, Guid tankBId);
+}
+
+public interface IServer : IWebServer, ITankServer
+{
+
 }
 
 public interface IMatchServer : IMatchHubClient, ITankClient

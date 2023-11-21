@@ -19,6 +19,9 @@ public class MainGame : Game, IMatchHubClient
 {
     public SpriteBatch SpriteBatch { get; private set; }
     public EntityDrawer EntityDrawer { get; set; }
+
+    public Dictionary<Guid, string> ConnectedTanks {  get; private set; } = new();
+
     public IEnumerable<TankResponse> Tanks { get; set; } = new List<TankResponse>();
     public IEnumerable<BulletResponse> Bullets { get; set; } = new List<BulletResponse>();
     public IEnumerable<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
@@ -40,7 +43,7 @@ public class MainGame : Game, IMatchHubClient
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
 
-        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match?clientType=Spectator").Build();
+        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match?clientType=WebClient").Build();
         _hubConnection.Register<IMatchHubClient>(this);
         _hubConnection.StartAsync();
     }
@@ -63,6 +66,18 @@ public class MainGame : Game, IMatchHubClient
 
     public Task OnRoundEnd()
     {
+        return Task.CompletedTask;
+    }
+
+    public Task OnTankConnected(string tankName, Guid tankId)
+    {
+        ConnectedTanks[tankId] = tankName;
+        return Task.CompletedTask;
+    }
+
+    public Task OnTankDisconnected(Guid tankId)
+    {
+        ConnectedTanks.Remove(tankId);
         return Task.CompletedTask;
     }
 
@@ -152,4 +167,5 @@ public class MainGame : Game, IMatchHubClient
 
         base.Draw(gameTime);
     }
+
 }

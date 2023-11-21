@@ -17,13 +17,14 @@ public class Tank : ITankClient, IDisposable
     public Tank()
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:5167/Match?clientType=Tank")
+            .WithUrl("http://localhost:5167/Match?clientType=Tank&name=SampleBot")
             .ConfigureLogging(logging =>
             {
                 logging.SetMinimumLevel(LogLevel.Debug);
                 logging.AddConsole();  // Log to the console.
             })
             .Build();
+
         _hubConnection.Register<ITankClient>(this);
         _hubConnection.Closed += async (exception) =>
         {
@@ -51,7 +52,7 @@ public class Tank : ITankClient, IDisposable
 
     public async Task OnRoundEnd()
     {
-        await _server.StartNew();
+        //await _server.();
     }
 
     public Task OnTankReceived(TankReceivedResponse tankReceivedResponse)

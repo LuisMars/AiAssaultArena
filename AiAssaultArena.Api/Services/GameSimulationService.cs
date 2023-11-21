@@ -7,34 +7,48 @@ using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
 using Microsoft.AspNetCore.SignalR;
 using System.Diagnostics;
+using System.Text;
 
 namespace AiAssaultArena.Api.Services;
 
 public class GameSimulationService
 {
-    public ParametersResponse Parameters
+
+    private class Match
     {
-        get => new()
+        public Guid Id { get; } = Guid.NewGuid();
+        public Task Task { get; set; }
+        public Runner Runner { get; set; }
+        public string WebClientConnectionId { get; set; }
+        public CancellationTokenSource CancellationTokenSource { get; set; }
+        public Dictionary<Guid, string> TankConnectionIds { get; internal set; }
+        public Func<Runner, CancellationToken, Task> Execution { get; internal set; }
+
+        public void Start()
         {
-            Walls = Runner.Walls.ToResponse(),
-            ArenaWidth = _width,
-            ArenaHeight = _height
-        };
+            Task = Execution(Runner, CancellationTokenSource.Token);
+        }
     }
 
     private readonly float _width = 1200;
     private readonly float _height = 720;
     private readonly Dictionary<string, Guid> _connections = [];
-    private Runner Runner { get; set; }
+
+    private readonly Dictionary<Guid, (string ConnectionId, string TankName)> _connectedTanks = [];
+    private readonly Dictionary<Guid, Match> _matches = [];
+
+
+    //private Runner Runner { get; set; }
     private readonly IHubContext<MatchHub, IMatchServer> _context;
+
 
     public GameSimulationService(IHubContext<MatchHub, IMatchServer> context)
     {
-        Runner = new Runner(_width, _height);
+        //Runner = new Runner(_width, _height);
         _context = context;
     }
 
-    private async Task ExecuteAsync(CancellationToken stoppingToken)
+    private async Task ExecuteAsync(Runner runner, CancellationToken stoppingToken)
     {
         await Task.Delay(1000, stoppingToken);
         var totalTime = Stopwatch.StartNew();
@@ -52,14 +66,14 @@ public class GameSimulationService
                 updateElapsed += deltaSeconds;
                 stopwatch.Restart();
                 // Perform game update with the dynamic timestep
-                Runner.Update(deltaSeconds);
+                runner.Update(deltaSeconds);
 
                 updates++;
 
                 if (updateElapsed > frameRate)
                 {
                     // Prepare the game state response without awaiting
-                    var gameStateResponse = Runner.GetGameStateResponse();
+                    var gameStateResponse = runner.GetGameStateResponse();
                     var updatesPerSecond = updates / (ulong)(1 + totalTime.Elapsed.TotalSeconds);
                     Console.WriteLine($"deltaNanoseconds: {1000000000 * deltaSeconds}\tUpdatesPerSecond: {updatesPerSecond}");
 
@@ -74,20 +88,20 @@ public class GameSimulationService
                             {
                                 continue;
                             }
-                            var tank = Runner.GetTank(tankId);
+                            var tank = runner.GetTank(tankId);
                             if (tank is not null)
                             {
-                                _context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(), Runner.Sensors[tank.Id].ToResponse());
+                                _context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(), runner.Sensors[tank.Id].ToResponse());
                             }
                         }
                     }, stoppingToken);
                 }
 
-                if (Runner.Tanks.Any(t => t.Health <= 0) || totalTime.Elapsed.TotalMinutes > 1)
+                if (runner.Tanks.Any(t => t.Health <= 0) || totalTime.Elapsed.TotalMinutes > 1)
                 {
                     await _context.Clients.All.OnRoundEnd();
                     _connections.Clear();
-                    Runner = new Runner(_width, _height);
+                    runner = new Runner(_width, _height);
                     break;
                 }
             }
@@ -100,49 +114,59 @@ public class GameSimulationService
 
     private readonly SemaphoreSlim _semaphoreSlim = new(1);
 
-    public async Task AddTankAsync(string connectionId)
+    public async Task AddTankAsync(string connectionId, string tankName)
     {
-        try
-        {
-            await _semaphoreSlim.WaitAsync();
-            var isFirst = Runner.Tanks.Count == 0;
-            TankEntity tank;
+        var tankId = Guid.NewGuid();
+        _connectedTanks[tankId] = (connectionId, tankName);
+        await _context.Clients.Group("Spectators").OnTankConnected(tankName, tankId);
 
-            if (!isFirst)
-            {
-                tank = new(new Vector2(-_width / 4, 0)) { BodyRotation = MathHelper.PiOver2 * 3f };
-
-            }
-            else
-            {
-                tank = new(new Vector2(_width / 4, 0)) { BodyRotation = -MathHelper.PiOver2 * -1f };
-            }
-
-            _connections[connectionId] = tank.Id;
-            Runner.AddTank(tank);
-            if (connectionId == "FAKE")
-            {
-                return;
-            }
-
-            await _context.Clients.Client(connectionId).OnTankReceived(new TankReceivedResponse { TankId = tank.Id });
-
-            if (Runner.Tanks.Count == 2)
-            {
-                _ = ExecuteAsync(new CancellationTokenSource().Token);
-            }
-        }
-        finally
-        {
-            _semaphoreSlim.Release();
-        }
     }
 
     public void MoveTank(string connectionId, TankMoveParameters parameters)
     {
-        if (_connections.TryGetValue(connectionId, out Guid value))
+        //if (_connections.TryGetValue(connectionId, out Guid value))
+        //{
+        //    Runner.UpdateTank(value, parameters);
+        //}
+    }
+
+    public void RemoveTank(string connectionId)
+    {
+        var (tankId, (_, tankName)) = _connectedTanks.First(t => t.Value.ConnectionId == connectionId);
+        _context.Clients.Group("Spectators").OnTankDisconnected(tankId);
+        _connectedTanks.Remove(tankId);
+    }
+
+    public async Task StartMatch(string connectionId, Guid tankAId, Guid tankBId)
+    {
+        var runner = new Runner(_width, _height);
+        var tankA = new TankEntity(new Vector2(-_width / 4, 0), tankAId) { BodyRotation = MathHelper.PiOver2 * 3f };
+        var tankB = new TankEntity(new Vector2(_width / 4, 0), tankBId) { BodyRotation = -MathHelper.PiOver2 * -1f };
+        runner.AddTank(tankA);
+        runner.AddTank(tankB);
+        var parameters = new ParametersResponse()
         {
-            Runner.UpdateTank(value, parameters);
-        }
+            Walls = runner.Walls.ToResponse(),
+            ArenaWidth = _width,
+            ArenaHeight = _height
+        };
+
+        await _context.Clients.Clients(new List<string> { connectionId, _connectedTanks[tankAId].ConnectionId, _connectedTanks[tankBId].ConnectionId }).OnParametersReceived(parameters);
+        var match = new Match
+        {
+            Runner = runner,
+            CancellationTokenSource = new CancellationTokenSource(),
+            WebClientConnectionId = connectionId,
+            TankConnectionIds = new Dictionary<Guid, string> 
+            {
+                { tankAId, _connectedTanks[tankAId].ConnectionId },
+                { tankBId, _connectedTanks[tankBId].ConnectionId }
+            },
+            Execution = ExecuteAsync
+        };
+
+        _matches[match.Id] = match;
+
+        match.Start();
     }
 }

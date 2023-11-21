@@ -52,10 +52,10 @@ public class TankEntity
 
     public const float TurretCoolDown = 1f;
 
-    public TankEntity(Vector2 position)
+    public TankEntity(Vector2 position, Guid? id)
     {
         Position = position;
-        Id = Guid.NewGuid();
+        Id = id ?? Guid.NewGuid();
     }
 
     public void Move(TankMoveParameters parameters)

@@ -8,7 +8,7 @@ using SignalRSwaggerGen.Attributes;
 namespace AiAssaultArena.Api.Hubs;
 
 [SignalRHub]
-public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ITankServer
+public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, IServer
 {
     private readonly GameSimulationService _simulation = simulation;
 
@@ -17,28 +17,40 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ITa
         await Clients.All.OnParametersReceived(parameters);
     }
 
+    public override Task OnDisconnectedAsync(Exception? exception)
+    {
+        _simulation.RemoveTank(Context.ConnectionId);
+        return Task.CompletedTask;
+    }
+
     public override async Task OnConnectedAsync()
     {
         // Check if the client sent a "clientType" parameter
         var request = Context.GetHttpContext()?.Request;
-        var clientType = "Spectators";
-        if (request is not null)
+        var clientType = "";
+
+        if (request?.Query?.TryGetValue("name", out var clientTypeValue) ?? false)
         {
-            clientType = request.Query["clientType"];
+            clientType = clientTypeValue.ToString();
         }
 
-        if (clientType == "Tank")
+        switch (clientType)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
-            await _simulation.AddTankAsync(Context.ConnectionId);
-        }
-        else
-        {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
+            case "Tank":
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
+                var name = "Unnamed tank";
+                if (request?.Query?.TryGetValue("name", out var nameValue) ?? false)
+                {
+                    name = nameValue.ToString();
+                }
+
+                await _simulation.AddTankAsync(Context.ConnectionId, name);
+                break;
+            case "WebClient":
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
+                break;
         }
 
-        var parameters = _simulation.Parameters;
-        await Clients.Client(Context.ConnectionId).OnParametersReceived(parameters);
         await base.OnConnectedAsync();
     }
 
@@ -48,8 +60,9 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ITa
         return Task.CompletedTask;
     }
 
-    public Task StartNew()
+    public Task StartMatch(string tankNameA, string tankNameB)
     {
-        return _simulation.AddTankAsync(Context.ConnectionId);
+        _simulation.StartMatch(Context.ConnectionId, tankNameA, tankNameB);
+        return Task.CompletedTask;
     }
 }
