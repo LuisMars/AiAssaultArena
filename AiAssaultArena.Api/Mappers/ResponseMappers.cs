@@ -7,9 +7,9 @@ namespace AiAssaultArena.Api.Mappers;
 
 public static class ResponseMappers
 {
-    public static IEnumerable<ArenaWallResponse> ToResponse(this IEnumerable<ArenaWallEntity> walls)
+    public static List<ArenaWallResponse> ToResponse(this IEnumerable<ArenaWallEntity> walls)
     {
-        return walls.Select(w => w.ToResponse());
+        return walls.Select(w => w.ToResponse()).ToList();
     }
 
     public static ArenaWallResponse ToResponse(this ArenaWallEntity wall)
@@ -73,8 +73,8 @@ public static class ResponseMappers
     {
         return new GameStateResponse
         {
-            Tanks = runner.Tanks.Select(t => t.ToResponse()),
-            Bullets = runner.Bullets.Values.Select(t => t.ToResponse())
+            Tanks = runner.Tanks.Select(t => t.ToResponse()).ToList(),
+            Bullets = runner.Bullets.Values.Select(t => t.ToResponse()).ToList()
         };
     }
 }

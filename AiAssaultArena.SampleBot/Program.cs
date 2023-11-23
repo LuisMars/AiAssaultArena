@@ -17,10 +17,10 @@ public class Tank : ITankClient, IDisposable
     public Tank()
     {
         _hubConnection = new HubConnectionBuilder()
-            .WithUrl("http://localhost:5167/Match?clientType=Tank&name=SampleBot")
+            .WithUrl("http://localhost:5167/Match")
             .ConfigureLogging(logging =>
             {
-                logging.SetMinimumLevel(LogLevel.Debug);
+                logging.SetMinimumLevel(LogLevel.Information);
                 logging.AddConsole();  // Log to the console.
             })
             .Build();
@@ -30,9 +30,10 @@ public class Tank : ITankClient, IDisposable
         {
             Console.WriteLine($"Connection closed: {exception?.Message}");
             await Task.Delay(TimeSpan.FromSeconds(5)); // Reconnect after a delay
-            await _hubConnection.StartAsync();
+            await StartAsync();
         };
         _server = _hubConnection.CreateHubProxy<ITankServer>();
+
     }
 
     private Guid Id { get; set; }
@@ -44,7 +45,7 @@ public class Tank : ITankClient, IDisposable
         _hubConnection.DisposeAsync();
     }
 
-    public Task OnParametersReceived(ParametersResponse parameters)
+    public Task OnMatchStart(ParametersResponse parameters)
     {
         Parameters = parameters;
         return Task.CompletedTask;
@@ -65,9 +66,10 @@ public class Tank : ITankClient, IDisposable
     {
         await _server.SendUpdate(new TankMoveParameters { TurretTurnDirection = -0.1f, SensorTurnDirection = -0.1f, TurnDirection = 1, Acceleration = 1, Shoot = true });
     }
-    public Task StartAsync()
+    public async Task StartAsync()
     {
-        return _hubConnection.StartAsync();
+        await _hubConnection.StartAsync(); 
+        await _server.RegisterAsync(Guid.NewGuid(), "Tank", "SampleBot" + Guid.NewGuid().ToString()[..4]);
     }
 }
 

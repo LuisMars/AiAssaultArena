@@ -1,5 +1,4 @@
-﻿using AiAssaultArena.Api.Mappers;
-using AiAssaultArena.Api.Services;
+﻿using AiAssaultArena.Api.Services;
 using AiAssaultArena.Contract;
 using AiAssaultArena.Contract.ClientDefinitions;
 using Microsoft.AspNetCore.SignalR;
@@ -12,11 +11,6 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ISe
 {
     private readonly GameSimulationService _simulation = simulation;
 
-    public async Task OnParametersReceived(ParametersResponse parameters)
-    {
-        await Clients.All.OnParametersReceived(parameters);
-    }
-
     public override Task OnDisconnectedAsync(Exception? exception)
     {
         _simulation.RemoveTank(Context.ConnectionId);
@@ -25,32 +19,7 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ISe
 
     public override async Task OnConnectedAsync()
     {
-        // Check if the client sent a "clientType" parameter
-        var request = Context.GetHttpContext()?.Request;
-        var clientType = "";
-
-        if (request?.Query?.TryGetValue("name", out var clientTypeValue) ?? false)
-        {
-            clientType = clientTypeValue.ToString();
-        }
-
-        switch (clientType)
-        {
-            case "Tank":
-                await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
-                var name = "Unnamed tank";
-                if (request?.Query?.TryGetValue("name", out var nameValue) ?? false)
-                {
-                    name = nameValue.ToString();
-                }
-
-                await _simulation.AddTankAsync(Context.ConnectionId, name);
-                break;
-            case "WebClient":
-                await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
-                break;
-        }
-
+        Clients.Client(Context.ConnectionId);
         await base.OnConnectedAsync();
     }
 
@@ -60,9 +29,22 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ISe
         return Task.CompletedTask;
     }
 
-    public Task StartMatch(string tankNameA, string tankNameB)
+    public Task StartMatchAsync(Guid tankAId, Guid tankBId)
     {
-        _simulation.StartMatch(Context.ConnectionId, tankNameA, tankNameB);
-        return Task.CompletedTask;
+        return _simulation.StartMatchAsync(Context.ConnectionId, tankAId, tankBId);
+    }
+
+    public async Task RegisterAsync(Guid guid, string clientType, string? name = null)
+    {
+        switch (clientType)
+        {
+            case "Tank":
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
+                await _simulation.AddTankAsync(Context.ConnectionId, name ?? "Unnamed tank");
+                break;
+            case "WebClient":
+                await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
+                break;
+        }
     }
 }

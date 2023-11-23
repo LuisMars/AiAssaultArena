@@ -22,7 +22,7 @@ public class ParametersResponse
 
     //WALLS
 
-    public IEnumerable<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
+    public List<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
     public float ArenaWidth { get; set; }
     public float ArenaHeight { get; set; }
 }

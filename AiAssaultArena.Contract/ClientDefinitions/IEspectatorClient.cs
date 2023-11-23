@@ -2,7 +2,7 @@
 
 public interface ISharedClient
 {
-    Task OnParametersReceived(ParametersResponse parameters);
+    Task OnMatchStart(ParametersResponse parameters);
     Task OnRoundEnd();
 }
 
@@ -21,14 +21,19 @@ public interface ITankClient : ISharedClient
     Task OnTankStateUpdated(TankResponse gameStateResponse, SensorResponse? sensorResponse);
 }
 
-public interface ITankServer
+public interface ISharedServer
+{
+    Task RegisterAsync(Guid guid, string clientType, string? name = null);
+}
+
+public interface ITankServer : ISharedServer
 {
     Task SendUpdate(TankMoveParameters parameters);
 }
 
-public interface IWebServer
+public interface IWebServer : ISharedServer
 {
-    Task StartMatch(Guid tankAId, Guid tankBId);
+    Task StartMatchAsync(Guid tankAId, Guid tankBId);
 }
 
 public interface IServer : IWebServer, ITankServer
