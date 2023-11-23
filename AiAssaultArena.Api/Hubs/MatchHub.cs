@@ -41,9 +41,11 @@ public class MatchHub(GameSimulationService simulation) : Hub<IMatchServer>, ISe
             case "Tank":
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Tanks");
                 await _simulation.AddTankAsync(Context.ConnectionId, name ?? "Unnamed tank");
+                Console.WriteLine("Tank conencted");
                 break;
             case "WebClient":
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
+                Console.WriteLine("WebClient connected");
                 break;
         }
     }

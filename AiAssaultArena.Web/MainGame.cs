@@ -1,8 +1,7 @@
 ﻿using AiAssaultArena.Contract;
 using AiAssaultArena.Contract.ClientDefinitions;
 using AiAssaultArena.Web.Arena;
-using AiAssaultArena.Web.Helpers;
-using Microsoft.AspNetCore.SignalR.Client;
+using AiAssaultArena.Web.Hub;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -10,21 +9,22 @@ using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using TypedSignalR.Client;
 
 namespace AiAssaultArena.Web;
 
 
 public class MainGame : Game, IMatchHubClient
 {
+    private readonly Client _client;
+
     public SpriteBatch SpriteBatch { get; private set; }
     public EntityDrawer EntityDrawer { get; set; }
 
-    public Dictionary<Guid, string> ConnectedTanks {  get; private set; } = new();
+    public Dictionary<Guid, string> ConnectedTanks { get; private set; } = new();
 
-    public IEnumerable<TankResponse> Tanks { get; set; } = new List<TankResponse>();
-    public IEnumerable<BulletResponse> Bullets { get; set; } = new List<BulletResponse>();
-    public IEnumerable<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
+    public List<TankResponse> Tanks { get; set; } = new List<TankResponse>();
+    public List<BulletResponse> Bullets { get; set; } = new List<BulletResponse>();
+    public List<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
     public ParametersResponse Parameters { get; set; }
 
     private Texture2D Tracks { get; set; }
@@ -32,52 +32,57 @@ public class MainGame : Game, IMatchHubClient
     private Texture2D Turret { get; set; }
     private Texture2D Sensor { get; set; }
     private Texture2D Bullet { get; set; }
+    public Action OnMessage { get; set; }
 
-
-    private readonly HubConnection _hubConnection;
     public GraphicsDeviceManager Graphics { get; private set; }
 
-
-    public MainGame()
+    public MainGame(Client client, Action onMessage)
     {
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-
-        _hubConnection = new HubConnectionBuilder().WithUrl("http://localhost:5167/match?clientType=WebClient").Build();
-        _hubConnection.Register<IMatchHubClient>(this);
-        _hubConnection.StartAsync();
+        _client = client;
+        _client.Register(this);
+        _client.Server.RegisterAsync(Guid.NewGuid(), "WebClient");
+        OnMessage = onMessage;
     }
 
-    public Task OnParametersReceived(ParametersResponse parameters)
+    public Task OnMatchStart(ParametersResponse parameters)
     {
         Parameters = parameters;
         Walls = parameters.Walls;
         EntityDrawer = new EntityDrawer(SpriteBatch, Parameters, Tracks, Body, Turret, Sensor, Bullet);
-
+        OnMessage();
         return Task.CompletedTask;
     }
 
     public Task OnGameUpdated(GameStateResponse gameStateResponse)
     {
         Tanks = gameStateResponse.Tanks;
-        Bullets = gameStateResponse.Bullets;
+        Bullets = gameStateResponse.Bullets; 
+        OnMessage();
         return Task.CompletedTask;
     }
 
     public Task OnRoundEnd()
     {
+        Tanks.Clear();
+        Bullets.Clear();
+        Walls.Clear();
+        OnMessage();
         return Task.CompletedTask;
     }
 
     public Task OnTankConnected(string tankName, Guid tankId)
     {
         ConnectedTanks[tankId] = tankName;
+        OnMessage();
         return Task.CompletedTask;
     }
 
     public Task OnTankDisconnected(Guid tankId)
     {
         ConnectedTanks.Remove(tankId);
+        OnMessage();
         return Task.CompletedTask;
     }
 

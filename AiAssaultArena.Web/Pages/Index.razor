@@ -4,6 +4,16 @@
 @using nkast.Wasm.Canvas
 
 <PageTitle>AiAssaultArena.Web</PageTitle>
+
+@if (!Client.IsConnected)
+{
+    <div>
+        <input @bind-value="@Url">
+        <button @onclick="ConnectAsync">Connect</button>
+    </div>
+    return;
+}
+
 <div style="height: 3rem">
 </div>
 <div id="canvasHolder" style="
@@ -19,33 +29,75 @@
     <canvas id="theCanvas" style="touch-action:none;"></canvas>
 </div>
 
-@if (_game is null || _game.Tanks is null)
+@if (!Client.IsConnected || Game is null || Game.Tanks is null)
 {
     return;
 }
 
 <div style="position: absolute; top: 0; left: 0; color: white; background: #0008; padding: 1rem; height: 100vh;">
 
-    @foreach (var tank in _game.Tanks)
+    @if (!Game.Tanks.Any())
     {
         <div>
             <div>
-                @tank.Id
+                Available tanks:
             </div>
-            <div>
+            <div style="display: flex; flex-direction: column; gap: 1rem">
                 <div>
-                    Health
+                    First Tank
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem">
+                    @foreach (var (id, tank) in Game.ConnectedTanks)
+                    {
+                        var tankId = id;
+                        <button @onclick="() => TankAId = id" style="background: @(TankAId != tankId ? "white" : "green")">
+                            @tank
+                        </button>
+                    }
                 </div>
 
-                <progress max="10000" value="@((int)(tank.Health * 100))" />
-            </div>
-            <div>
                 <div>
-                    Cooldown
+                    First Tank
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 1rem">
+                    @foreach (var (id, tank) in Game.ConnectedTanks)
+                    {
+                        var tankId = id;
+                        <button @onclick="() => TankBId = id" style="background: @(TankBId != tankId ? "white" : "green")">
+                            @tank
+                        </button>
+                    }
                 </div>
 
-                <progress max="100" value="@((int)(tank.CurrentTurretHeat * 100))" />
+                <button @onclick="() => Client.Server.StartMatchAsync(TankAId, TankBId)">
+                    Start
+                </button>
             </div>
         </div>
+    }
+    else
+    {
+        @foreach (var tank in Game.Tanks)
+        {
+            <div>
+                <div>
+                    @Game.ConnectedTanks[tank.Id]
+                </div>
+                <div>
+                    <div>
+                        Health
+                    </div>
+
+                    <progress max="10000" value="@((int)(tank.Health * 100))" />
+                </div>
+                <div>
+                    <div>
+                        Cooldown
+                    </div>
+
+                    <progress max="100" value="@((int)(tank.CurrentTurretHeat * 100))" />
+                </div>
+            </div>
+        }
     }
 </div>
