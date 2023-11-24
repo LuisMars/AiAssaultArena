@@ -8,31 +8,30 @@ using System.Diagnostics;
 
 namespace AiAssaultArena.Api.Services;
 
-public class Match(IHubContext<MatchHub, IMatchServer> context)
+public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner)
 {
+    public Guid Id { get; } = Guid.NewGuid();
     public float Width { get; set; }
     public float Height { get; set; }
-    public Guid Id { get; } = Guid.NewGuid();
-    private Task Task { get; set; }
-    private Runner Runner { get; set; }
     public string WebClientConnectionId { get; set; }
-    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
     public Dictionary<Guid, string> TankConnectionIds { get; set; }
-    private IHubContext<MatchHub, IMatchServer> Context { get; set; } = context;
     public bool HasEnded { get; set; }
+    private readonly Runner _runner = runner;
+    private IHubContext<MatchHub, IMatchServer> Context { get; set; } = context;
+    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
     public async Task StartAsync()
     {
         var parameters = new ParametersResponse()
         {
-            Walls = Runner.Walls.ToResponse(),
+            Walls = _runner.Walls.ToResponse(),
             ArenaWidth = Width,
             ArenaHeight = Height
         };
 
         await Context.Clients.Client(WebClientConnectionId).OnMatchStart(parameters);
         await Context.Clients.Clients(TankConnectionIds.Values).OnMatchStart(parameters);
-        Task = ExecuteAsync(Runner, _cancellationTokenSource.Token);
+        _ = ExecuteAsync(_runner, _cancellationTokenSource.Token);
     }
 
     public async Task EndRoundAsync()
@@ -78,7 +77,7 @@ public class Match(IHubContext<MatchHub, IMatchServer> context)
                     {
                         Context.Clients.Client(WebClientConnectionId).OnGameUpdated(gameStateResponse);
 
-                        foreach (var tank in Runner.Tanks)
+                        foreach (var tank in _runner.Tanks)
                         {
                             var connectionId = TankConnectionIds[tank.Id];
 
@@ -101,10 +100,12 @@ public class Match(IHubContext<MatchHub, IMatchServer> context)
                 Console.Error.WriteLine(ex);
             }
         }
+
+        Console.WriteLine($"Match {Id} ended");
     }
 
     public void UpdateTank(Guid id, TankMoveParameters parameters)
     {
-        Runner.UpdateTank(id, parameters);
+        _runner.UpdateTank(id, parameters);
     }
 }

@@ -5,6 +5,7 @@ using AiAssaultArena.Simulation;
 using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace AiAssaultArena.Api.Services;
 
@@ -51,6 +52,7 @@ public class MatchService
         _matchRepository.AddTank(tankId, connectionId, tankName);
         await _context.Clients.Group("Spectators").OnTankConnected(tankName, tankId);
         await _context.Clients.Client(connectionId).OnTankReceived(new TankReceivedResponse { TankId = tankId });
+        Console.WriteLine($"Added tank {tankId}: {tankName}");
     }
 
     public void MoveTank(string connectionId, TankMoveParameters parameters)
@@ -75,6 +77,8 @@ public class MatchService
             Console.WriteLine($"ConnectionId {connectionId} has no tank associated with it");
             return;
         }
+        _matchRepository.RemoveTank(tank);
+        Console.WriteLine($"Removed tank {tank.Id}");
 
         if (!_matchRepository.TryGetMatch(tank.MatchId!.Value, out var match))
         {
@@ -82,20 +86,44 @@ public class MatchService
             return;
         }
 
-        _matchRepository.Remove(match);
+        _matchRepository.RemoveMatch(match);
         await match.EndRoundAsync();
+        Console.WriteLine($"Match {match.Id} ended because {tank.Id} was removed");
     }
 
     public async Task StartMatchAsync(string connectionId, Guid tankAId, Guid tankBId)
     {
-        Console.WriteLine($"Starting match for {connectionId} with tanks {_connectedTanks[tankAId]} and {_connectedTanks[tankBId]}");
-
-        if (_matches.Any(m => m.Value.WebClientConnectionId == connectionId))
+        if (!_matchRepository.TryGetTank(tankAId, out var tankAInfo))
         {
-            var existingMatch = _matches.FirstOrDefault(m => m.Value.WebClientConnectionId == connectionId);
-            await existingMatch.Value.EndRoundAsync();
-            _matches.Remove(existingMatch.Key);
-            Console.WriteLine($"Existing match {existingMatch.Key} was removed");
+            Console.WriteLine($"Tank {tankAId} is not connected");
+            return;
+        }
+
+        if (tankAInfo.MatchId is not null)
+        {
+            Console.WriteLine($"Tank {tankAId} is already in a match");
+            return;
+        }
+
+        if (!_matchRepository.TryGetTank(tankBId, out var tankBInfo))
+        {
+            Console.WriteLine($"Tank {tankAId} is not connected");
+            return;
+        }
+
+        if (tankBInfo.MatchId is not null)
+        {
+            Console.WriteLine($"Tank {tankBId} is already in a match");
+            return;
+        }
+
+        Console.WriteLine($"Starting match for {connectionId} with tanks {tankAInfo!.Name} and {tankBInfo!.Name}");
+
+        if (_matchRepository.TryGetMatch(connectionId, out var existingMatch))
+        {
+            await existingMatch.EndRoundAsync();
+            _matchRepository.RemoveMatch(existingMatch);
+            Console.WriteLine($"Existing match {existingMatch.Id} was removed");
         }
 
         var runner = new Runner(_width, _height);
@@ -104,20 +132,21 @@ public class MatchService
         runner.AddTank(tankA);
         runner.AddTank(tankB);
 
-        var match = new Match(_context)
+        var match = new Match(_context, runner)
         {
             Width = _width,
             Height = _height,
-            Runner = runner,
             WebClientConnectionId = connectionId,
             TankConnectionIds = new Dictionary<Guid, string>
             {
-                { tankAId, _connectedTanks[tankAId].ConnectionId },
-                { tankBId, _connectedTanks[tankBId].ConnectionId }
+                { tankAId, tankAInfo.ConnectionId },
+                { tankBId, tankBInfo.ConnectionId }
             }
         };
 
-        _matches[match.Id] = match;
+        tankAInfo.MatchId = match.Id;
+        tankBInfo.MatchId = match.Id;
+        _matchRepository.AddMatch(match);
 
         await match.StartAsync();
     }

@@ -1,5 +1,6 @@
 ﻿
 using System.Diagnostics.CodeAnalysis;
+using System.Text.RegularExpressions;
 
 namespace AiAssaultArena.Api.Services;
 
@@ -39,14 +40,44 @@ public class MatchRepository
         return tank is not null;
     }
 
+    public bool TryGetTank(Guid id, [MaybeNullWhen(false)] out TankDbo tank)
+    {
+        return _connectedTanks.TryGetValue(id, out tank);
+    }
+
     public bool TryGetMatch(Guid matchId, [MaybeNullWhen(false)] out Match match)
     {
         return _matches.TryGetValue(matchId, out match);
     }
 
-    public void Remove(Match match)
+    public bool TryGetMatch(string connectionId, [MaybeNullWhen(false)] out Match match)
     {
-        //TODO: free tanks
+        match = _matches.Values.FirstOrDefault(m => m.WebClientConnectionId == connectionId);
+        return match is not null;
+    }
+
+    public void RemoveMatch(Match match)
+    {
+        var tanks = _connectedTanks.Values.Where(t => t.MatchId == match.Id);
+        foreach (var tank in tanks)
+        {
+            tank.MatchId = null;
+        }
         _matches.Remove(match.Id);
+    }
+
+    public void RemoveTank(TankDbo tank)
+    {
+        _connectedTanks.Remove(tank.Id);
+    }
+
+    public void AddMatch(Match match)
+    {
+        _matches[match.Id] = match;
+    }
+
+    public IEnumerable<Match> GetAllMatches()
+    {
+        return _matches.Values;
     }
 }
