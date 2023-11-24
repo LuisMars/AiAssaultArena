@@ -57,7 +57,7 @@
                 </div>
 
                 <div>
-                    First Tank
+                    Second Tank
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 1rem">
                     @foreach (var (id, tank) in Game.ConnectedTanks)
@@ -79,6 +79,10 @@
     {
         @foreach (var tank in Game.Tanks)
         {
+            @if (!Game.ConnectedTanks.ContainsKey(tank.Id))
+            {
+                continue;
+            }
             <div>
                 <div>
                     @Game.ConnectedTanks[tank.Id]
@@ -99,5 +103,17 @@
                 </div>
             </div>
         }
+        <div>
+            <div>
+                Server info
+            </div>
+            <div>
+                @(Game.UpdatesPerSecond / 1000) kups
+            </div>
+
+            <div>
+                @Game.Elapsed
+            </div>
+        </div>
     }
 </div>

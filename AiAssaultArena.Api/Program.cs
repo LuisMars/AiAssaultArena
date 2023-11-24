@@ -16,7 +16,8 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddSignalR();
 
-builder.Services.AddSingleton<GameSimulationService>();
+builder.Services.AddSingleton<MatchService>();
+builder.Services.AddSingleton<MatchRepository>();
 
 builder.Services.AddResponseCompression(opts =>
 {

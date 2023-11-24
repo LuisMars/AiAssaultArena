@@ -9,7 +9,7 @@ public interface ISharedClient
 public interface IMatchHubClient : ISharedClient
 {
     Task OnGameUpdated(GameStateResponse gameStateResponse);
-    
+
     Task OnTankConnected(string tankName, Guid tankId);
 
     Task OnTankDisconnected(Guid tankId);
@@ -23,7 +23,7 @@ public interface ITankClient : ISharedClient
 
 public interface ISharedServer
 {
-    Task RegisterAsync(Guid guid, string clientType, string? name = null);
+    Task RegisterAsync(string clientType, Guid? guid, string? name = null);
 }
 
 public interface ITankServer : ISharedServer

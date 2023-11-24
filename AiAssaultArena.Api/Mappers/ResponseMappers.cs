@@ -69,12 +69,14 @@ public static class ResponseMappers
         };
     }
 
-    public static GameStateResponse GetGameStateResponse(this Runner runner)
+    public static GameStateResponse GetGameStateResponse(this Runner runner, TimeSpan elapsed, ulong updatesPerSecond)
     {
         return new GameStateResponse
         {
             Tanks = runner.Tanks.Select(t => t.ToResponse()).ToList(),
-            Bullets = runner.Bullets.Values.Select(t => t.ToResponse()).ToList()
+            Bullets = runner.Bullets.Values.Select(t => t.ToResponse()).ToList(),
+            Elapsed = elapsed,
+            UpdatesPerSecond = updatesPerSecond
         };
     }
 }

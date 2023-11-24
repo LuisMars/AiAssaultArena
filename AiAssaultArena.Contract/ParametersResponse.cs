@@ -1,4 +1,5 @@
-﻿namespace AiAssaultArena.Contract;
+﻿
+namespace AiAssaultArena.Contract;
 public class ParametersResponse
 {
     //TANK
@@ -25,4 +26,5 @@ public class ParametersResponse
     public List<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
     public float ArenaWidth { get; set; }
     public float ArenaHeight { get; set; }
+    public Guid MatchId { get; set; }
 }

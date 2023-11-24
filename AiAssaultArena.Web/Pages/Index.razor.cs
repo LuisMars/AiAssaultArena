@@ -17,10 +17,10 @@ public partial class Index
 
     public Guid TankAId { get; set; }
     public Guid TankBId { get; set; }
-
+    public Guid? Id { get; set; } = null;
     public bool IsInitialized { get; set; }
 
-    public string Url { get; set; }
+    public string Url { get; set; } = "http://localhost:5167";
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -44,7 +44,7 @@ public partial class Index
         // init game
         if (Game == null)
         {
-            Game = new MainGame(Client, StateHasChanged);
+            Game = new MainGame(Client, StateHasChanged, Id);
             Game.Run();
         }
 

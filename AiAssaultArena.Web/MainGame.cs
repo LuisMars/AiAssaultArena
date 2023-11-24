@@ -24,6 +24,8 @@ public class MainGame : Game, IMatchHubClient
 
     public List<TankResponse> Tanks { get; set; } = new List<TankResponse>();
     public List<BulletResponse> Bullets { get; set; } = new List<BulletResponse>();
+    public TimeSpan Elapsed { get; private set; }
+    public ulong UpdatesPerSecond { get; private set; }
     public List<ArenaWallResponse> Walls { get; set; } = new List<ArenaWallResponse>();
     public ParametersResponse Parameters { get; set; }
 
@@ -36,13 +38,13 @@ public class MainGame : Game, IMatchHubClient
 
     public GraphicsDeviceManager Graphics { get; private set; }
 
-    public MainGame(Client client, Action onMessage)
+    public MainGame(Client client, Action onMessage, Guid? id)
     {
         Graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         _client = client;
         _client.Register(this);
-        _client.Server.RegisterAsync(Guid.NewGuid(), "WebClient");
+        _client.Server.RegisterAsync("WebClient", id);
         OnMessage = onMessage;
     }
 
@@ -58,7 +60,9 @@ public class MainGame : Game, IMatchHubClient
     public Task OnGameUpdated(GameStateResponse gameStateResponse)
     {
         Tanks = gameStateResponse.Tanks;
-        Bullets = gameStateResponse.Bullets; 
+        Bullets = gameStateResponse.Bullets;
+        Elapsed = gameStateResponse.Elapsed;
+        UpdatesPerSecond = gameStateResponse.UpdatesPerSecond;
         OnMessage();
         return Task.CompletedTask;
     }
