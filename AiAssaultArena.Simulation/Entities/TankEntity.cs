@@ -40,17 +40,17 @@ public class TankEntity
     public const float MaxAngularAcceleration = 50f;
     public const float MaxAngularVelocity = 1f;
 
-    public const float MaxTurretAngularVelocity = 2f;
+    public const float MaxTurretAngularVelocity = 1f;
     public const float MaxTurretAngularAcceleration = 50f;
 
-    public const float MaxSensorAngularVelocity = 3f;
-    public const float MaxSensorAngularAcceleration = 50f;
+    public const float MaxSensorAngularVelocity = 1.5f;
+    public const float MaxSensorAngularAcceleration = 100f;
     
     public const float Friction = 0.1f;
     public const float AngularFriction = 0.00001f;
     public const float LateralDamping = 0.25f;
 
-    public const float TurretCoolDown = 1f;
+    public const float TurretCoolDown = 0.5f;
 
     public TankEntity(Vector2 position, Guid? id)
     {
@@ -78,8 +78,8 @@ public class TankEntity
             return null;
         }
         CurrentTurretHeat = TurretCoolDown;
-        var bulletStartPosition = Position + new Vector2(0, TurretLength).Rotate(BodyRotation + TurretRotation); // Offset to start from turret
-        var bullet = new BulletEntity(bulletStartPosition, Velocity, BodyRotation + TurretRotation, Id);
+        var bulletStartPosition = Position + new Vector2(0, TurretLength).Rotate(TurretRotation); // Offset to start from turret
+        var bullet = new BulletEntity(bulletStartPosition, Velocity, TurretRotation, Id);
         return bullet;
     }
 }

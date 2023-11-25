@@ -159,9 +159,26 @@ public static class Collider
         return distance.LengthSquared() <= BulletEntity.Radius * BulletEntity.Radius;
     }
 
+    public static bool Senses(this TankEntity tank, TankEntity other)
+    {
+        var sensorEnd = tank.Position + new Vector2(0, 1000000).Rotate(tank.SensorRotation);
+        var cornersOther = GetCorners(other);
+        for (int i = 0; i < 4; i++)
+        {
+            Vector2 rectLineStart = cornersOther[i];
+            Vector2 rectLineEnd = cornersOther[(i + 1) % 4];
+
+            if (LinesIntersect(tank.Position, sensorEnd, rectLineStart, rectLineEnd, out _))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
     public static bool Senses(this TankEntity tank, TankEntity other, out Vector2 intersection, out float distanceSquared)
     {
-        var sensorEnd = tank.Position + new Vector2(0, 1000000).Rotate(tank.BodyRotation + tank.SensorRotation);
+        var sensorEnd = tank.Position + new Vector2(0, 1000000).Rotate(tank.SensorRotation);
         var cornersOther = GetCorners(other);
         distanceSquared = float.MaxValue;
         var foundIntersection = false;

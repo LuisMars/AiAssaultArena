@@ -7,64 +7,67 @@ namespace AiAssaultArena.Tanks.Tracker;
 
 public class Tracker() : BaseTank("Tracker Tank")
 {
-    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 0.1f, TurnDirection = 0.1f, TurretTurnDirection = 0, SensorTurnDirection = 1f };
+    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 1f, TurnDirection = 1f, TurretTurnDirection = 1f, SensorTurnDirection = 1f };
     private Vector2 LastKnownPosition { get; set; }
     private Vector2 PerceivedSpeed { get; set; }
-    private Vector2 PerceivedAcceleration { get; set; }
     private float Distance { get; set; }
     private bool WasTracking { get; set; }
-    private float LastTrackedDirection { get; set; }
-    private float _width { get; set; } = 1200;
-    private float _heigth { get; set; } = 720;
-    private float _tankRadius { get; set; } = 25;
-    protected override Task OnUpdate(TankResponse gameStateResponse, SensorResponse? sensorResponse)
+    private float LastTrackedDirection { get; set; } = 1;
+    private float Width { get; set; } = 1200;
+    private float Height { get; set; } = 720;
+    private float TankRadius { get; set; } = 25;
+
+    private readonly Stopwatch _stopwatch = Stopwatch.StartNew();
+    private TimeSpan? LastSeen { get; set; }
+
+    private static float RandomNormal()
+    {
+        return Random.Shared.NextSingle() - 0.5f;
+    }
+
+    protected override Task OnUpdate(TankResponse tankResponse, SensorResponse? sensorResponse)
     {
         var isTracking = sensorResponse is not null;
-
-        var position = UpdateTankInfo(gameStateResponse, sensorResponse);
+        var position = UpdateTankInfo(tankResponse, sensorResponse);
+        var futurePosition = CalculateFuturePosition(tankResponse);
 
         if (isTracking)
         {
-            var futurePosition = CalculateFuturePosition();
-
             // Calculate angles taking into account the body rotation
             var possibleFuturePositionAngle = CalculateAngle(position, futurePosition);
-            var turretAngleToFuturePosition = GetHeading(possibleFuturePositionAngle - (gameStateResponse.TurretRotation + gameStateResponse.BodyRotation));
+            var turretAngleToFuturePosition = GetHeading(possibleFuturePositionAngle - tankResponse.TurretRotation);
 
             var angleToLastKnownPosition = CalculateAngle(position, LastKnownPosition);
-            var sensorAngleToLastKnownPosition = GetHeading(angleToLastKnownPosition - (gameStateResponse.SensorRotation + gameStateResponse.BodyRotation));
+            var sensorAngleToLastKnownPosition = GetHeading(angleToLastKnownPosition - tankResponse.SensorRotation);
 
-            _moveParameters.SensorTurnDirection = sensorAngleToLastKnownPosition - _moveParameters.TurnDirection;
-            _moveParameters.TurretTurnDirection = turretAngleToFuturePosition - _moveParameters.TurnDirection;
-
-            if (!WasTracking)
+            _moveParameters.SensorTurnDirection = MathF.Sign(sensorAngleToLastKnownPosition) + RandomNormal() * 0.1f;
+            _moveParameters.TurretTurnDirection = MathF.Sign(turretAngleToFuturePosition);
+            var isReadyToShoot = MathF.Abs(turretAngleToFuturePosition) < MathF.PI / 8;
+            if (isReadyToShoot)
             {
-                _moveParameters.SensorTurnDirection *= 2;
+                _moveParameters.TurretTurnDirection += RandomNormal() * 0.1f;
             }
-
-            _moveParameters.Shoot = MathF.Abs(turretAngleToFuturePosition) < MathF.PI / 4 && gameStateResponse.CurrentTurretHeat == 0;
+            _moveParameters.Shoot = isReadyToShoot && tankResponse.CurrentTurretHeat == 0;
         }
         else if (WasTracking)
         {
-
             // Determine the direction to turn the sensor based on overshooting
-            var angleToLastKnownPosition = CalculateAngle(position, LastKnownPosition);
-            var currentSensorAngle = GetHeading(gameStateResponse.SensorRotation + gameStateResponse.BodyRotation);
+            var angleToLastKnownPosition = CalculateAngle(position, futurePosition);
+            var currentSensorAngle = GetHeading(tankResponse.SensorRotation);
             var angleDifference = GetHeading(angleToLastKnownPosition - currentSensorAngle);
 
             // If the angleDifference is positive, the sensor should turn left, and vice versa
-            _moveParameters.SensorTurnDirection = (angleDifference > 0 ? -1 : 1) - _moveParameters.TurnDirection;
+            _moveParameters.SensorTurnDirection = (angleDifference > 0 ? -1f : 1f) + RandomNormal() * 0.1f;
 
-
-            // Reset turret direction and shooting as we are not currently tracking
+            // Reset turret direction and shooting as we are not currently tracking            
             _moveParameters.Shoot = false;
+            _moveParameters.TurretTurnDirection = _moveParameters.SensorTurnDirection;
 
             LastTrackedDirection = _moveParameters.SensorTurnDirection > 0 ? 1 : -1;
         }
         else
         {
-            _moveParameters.SensorTurnDirection = (-0.5f * LastTrackedDirection) - _moveParameters.TurnDirection;
-
+            _moveParameters.SensorTurnDirection = -1 * LastTrackedDirection;
         }
 
         WasTracking = isTracking;
@@ -77,23 +80,44 @@ public class Tracker() : BaseTank("Tracker Tank")
 
         if (sensorResponse is not null)
         {
+            var timeDelta = 1f / 60;
+            if (LastSeen is not null)
+            {
+                timeDelta = (float)(_stopwatch.Elapsed - LastSeen.Value).TotalSeconds;
+            }
+            LastSeen = _stopwatch.Elapsed;
+
             var lastPosition = LastKnownPosition;
             LastKnownPosition = new Vector2(sensorResponse.Position.X, sensorResponse.Position.Y);
-            PerceivedSpeed = LastKnownPosition - lastPosition;
-            Distance = (LastKnownPosition - position).Length();
-
-            PerceivedAcceleration = (PerceivedSpeed - (lastPosition - LastKnownPosition)) / Distance;
+            PerceivedSpeed = (LastKnownPosition - lastPosition) / timeDelta;
+            Distance = Vector2.Distance(LastKnownPosition, position);
         }
+        
         return position;
     }
-    private Vector2 CalculateFuturePosition()
-    {
-        var timeToImpact = Distance / 450; // bullet speed is 450 units/sec
-        var futurePosition = LastKnownPosition + PerceivedSpeed * timeToImpact + 0.5f * PerceivedAcceleration * timeToImpact * timeToImpact;
 
-        // Ensure the future position doesn't go outside the boundaries considering the tank's radius
-        var maxX = _width / 2 - _tankRadius;
-        var maxY = _heigth / 2 - _tankRadius;
+    private Vector2 CalculateFuturePosition(TankResponse gameStateResponse)
+    {
+        // To ensure the future position doesn't go outside the boundaries
+        var maxX = Width / 2 - TankRadius;
+        var maxY = Height / 2 - TankRadius;
+
+        // Assuming bullet speed is 450 units per second
+        // Initial estimation of time to impact based on current distance
+        var initialTimeToImpact = (Distance - 50) / 450;
+
+        // Predict where the target will be after the initial time to impact
+        var predictedFuturePosition = LastKnownPosition + (PerceivedSpeed * initialTimeToImpact);
+
+        predictedFuturePosition.X = Math.Clamp(predictedFuturePosition.X, -maxX, maxX);
+        predictedFuturePosition.Y = Math.Clamp(predictedFuturePosition.Y, -maxY, maxY);
+
+        // Recalculate time to impact based on the predicted future position
+        var newDistance = Vector2.Distance(predictedFuturePosition, new Vector2(gameStateResponse.Position.X, gameStateResponse.Position.Y));
+        var timeToImpact = (newDistance - 50) / 450;
+
+        // Predict the final future position based on recalculated time to impact
+        var futurePosition = LastKnownPosition + (PerceivedSpeed * timeToImpact);
 
         futurePosition.X = Math.Clamp(futurePosition.X, -maxX, maxX);
         futurePosition.Y = Math.Clamp(futurePosition.Y, -maxY, maxY);
@@ -101,12 +125,12 @@ public class Tracker() : BaseTank("Tracker Tank")
         return futurePosition;
     }
 
-    private float CalculateAngle(Vector2 from, Vector2 to)
+
+    private static float CalculateAngle(Vector2 from, Vector2 to)
     {
         var direction = to - from;
         return MathF.Atan2(direction.Y, direction.X);
     }
-
 
     private static float GetHeading(float rotation)
     {

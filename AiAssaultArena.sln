@@ -19,9 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Common
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Bots", "Bots", "{0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Tanks.RandomTank", "AiAssaultArena.Tanks.RandomTank\AiAssaultArena.Tanks.RandomTank.csproj", "{2CFEC8E3-13D9-48F2-BDEF-BB729E46E2D7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.RandomTank", "AiAssaultArena.Tanks.RandomTank\AiAssaultArena.Tanks.RandomTank.csproj", "{2CFEC8E3-13D9-48F2-BDEF-BB729E46E2D7}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Tanks.Tracker", "AiAssaultArena.Tanks.Tracker\AiAssaultArena.Tanks.Tracker.csproj", "{9DB4CCB2-C0A3-484D-8392-06E79C85455F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Tracker", "AiAssaultArena.Tanks.Tracker\AiAssaultArena.Tanks.Tracker.csproj", "{9DB4CCB2-C0A3-484D-8392-06E79C85455F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Tanks.Corners", "AiAssaultArena.Tanks.Corners\AiAssaultArena.Tanks.Corners.csproj", "{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -65,6 +67,10 @@ Global
 		{9DB4CCB2-C0A3-484D-8392-06E79C85455F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9DB4CCB2-C0A3-484D-8392-06E79C85455F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9DB4CCB2-C0A3-484D-8392-06E79C85455F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -73,6 +79,7 @@ Global
 		{D8D66A13-D72F-4ECC-8849-847C22BE37A9} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 		{2CFEC8E3-13D9-48F2-BDEF-BB729E46E2D7} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 		{9DB4CCB2-C0A3-484D-8392-06E79C85455F} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
+		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D94BCF77-39FE-404A-9ABC-FFC18DC2340D}

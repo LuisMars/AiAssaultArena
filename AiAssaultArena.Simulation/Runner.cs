@@ -86,13 +86,13 @@ public class Runner
 
             foreach (var (tankA, tankB) in MatchTanks())
             {
-                if (tankA.Senses(tankB, out var intersectionA, out var distanceSquaredA) && (Sensors[tankA.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredA)
+                if (tankA.Senses(tankB))
                 {
-                    Sensors[tankA.Id] = new(tankB, intersectionA, distanceSquaredA);
+                    Sensors[tankA.Id] = new(tankB, tankB.Position, 0);
                 }
-                if (tankB.Senses(tankA, out var intersectionB, out var distanceSquaredB) && (Sensors[tankB.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredB)
+                if (tankB.Senses(tankA))
                 {
-                    Sensors[tankB.Id] = new(tankA, intersectionB, distanceSquaredB);
+                    Sensors[tankB.Id] = new(tankA, tankA.Position, 0);
                 }
             }
         } 

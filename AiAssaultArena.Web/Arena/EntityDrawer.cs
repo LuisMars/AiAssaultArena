@@ -77,19 +77,19 @@ public class EntityDrawer
         _spriteBatch.Draw(_body, shadowPosition, null, shadowColor, tank.BodyRotation, origin, scale, SpriteEffects.None, 1);
         _spriteBatch.Draw(_body, texturePosition, null, color, tank.BodyRotation, origin, scale, SpriteEffects.None, 1);
 
-        var turretPosition = position - origin.Rotate(tank.BodyRotation + tank.TurretRotation);
-        var turretShadowPosition = (position + shadowOffset) - origin.Rotate(tank.BodyRotation + tank.TurretRotation);
+        var turretPosition = position - origin.Rotate(tank.TurretRotation);
+        var turretShadowPosition = (position + shadowOffset) - origin.Rotate(tank.TurretRotation);
 
-        _spriteBatch.Draw(_turret, turretShadowPosition, null, shadowColor, tank.BodyRotation + tank.TurretRotation, origin, scale, SpriteEffects.None, 1);
-        _spriteBatch.Draw(_turret, turretPosition, null, color, tank.BodyRotation + tank.TurretRotation, origin, scale, SpriteEffects.None, 1);
+        _spriteBatch.Draw(_turret, turretShadowPosition, null, shadowColor, tank.TurretRotation, origin, scale, SpriteEffects.None, 1);
+        _spriteBatch.Draw(_turret, turretPosition, null, color, tank.TurretRotation, origin, scale, SpriteEffects.None, 1);
 
-        var sensorPosition = position - origin.Rotate(tank.BodyRotation + tank.SensorRotation);
-        var sensorShadowPosition = (position + shadowOffset) - origin.Rotate(tank.BodyRotation + tank.SensorRotation);
+        var sensorPosition = position - origin.Rotate(tank.SensorRotation);
+        var sensorShadowPosition = (position + shadowOffset) - origin.Rotate(tank.SensorRotation);
 
-        _spriteBatch.Draw(_sensor, sensorShadowPosition, null, shadowColor, tank.BodyRotation + tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
-        _spriteBatch.Draw(_sensor, sensorPosition, null, Color.White, tank.BodyRotation + tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
+        _spriteBatch.Draw(_sensor, sensorShadowPosition, null, shadowColor, tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
+        _spriteBatch.Draw(_sensor, sensorPosition, null, Color.White, tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
 
-        var sensorEnd = position + new Vector2(0, 3000).Rotate(tank.BodyRotation + tank.SensorRotation);
+        var sensorEnd = position + new Vector2(0, 3000).Rotate(tank.SensorRotation);
         _spriteBatch.DrawLine(position, sensorEnd, color);
 
         //var rectangle = new RectangleF((tank.Position.X, tank.Position.Y), new Size2(_parameters.Width, _parameters.Height));
