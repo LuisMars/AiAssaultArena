@@ -1,5 +1,4 @@
-﻿using AiAssaultArena.Api.Mappers;
-using AiAssaultArena.Api.Services;
+﻿using AiAssaultArena.Api.Services;
 using AiAssaultArena.Contract;
 using AiAssaultArena.Contract.ClientDefinitions;
 using Microsoft.AspNetCore.SignalR;
@@ -14,7 +13,7 @@ public class MatchHub(MatchService matchService) : Hub<IMatchServer>, IServer
 
     public override Task OnDisconnectedAsync(Exception? exception)
     {
-        return _matchService.RemoveTankAsync(Context.ConnectionId);
+        return _matchService.RemoveConnectionAsync(Context.ConnectionId);
     }
 
     public override async Task OnConnectedAsync()
@@ -44,6 +43,7 @@ public class MatchHub(MatchService matchService) : Hub<IMatchServer>, IServer
                 break;
             case "WebClient":
                 await Groups.AddToGroupAsync(Context.ConnectionId, "Spectators");
+                Console.WriteLine($"Spectator {Context.ConnectionId} connected");
                 break;
         }
     }

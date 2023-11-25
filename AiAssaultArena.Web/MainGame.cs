@@ -76,14 +76,14 @@ public class MainGame : Game, IMatchHubClient
         return Task.CompletedTask;
     }
 
-    public Task OnTankConnected(string tankName, Guid tankId)
+    public Task OnTankAvailable(string tankName, Guid tankId)
     {
         ConnectedTanks[tankId] = tankName;
         OnMessage();
         return Task.CompletedTask;
     }
 
-    public Task OnTankDisconnected(Guid tankId)
+    public Task OnTankUnavailable(Guid tankId)
     {
         ConnectedTanks.Remove(tankId);
         OnMessage();

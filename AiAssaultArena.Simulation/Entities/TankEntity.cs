@@ -38,9 +38,9 @@ public class TankEntity
     public const float MaxAcceleration = 500f;
     public const float MaxSpeed = 125f;
     public const float MaxAngularAcceleration = 50f;
-    public const float MaxAngularVelocity = 1.5f;
+    public const float MaxAngularVelocity = 1f;
 
-    public const float MaxTurretAngularVelocity = 0.5f;
+    public const float MaxTurretAngularVelocity = 2f;
     public const float MaxTurretAngularAcceleration = 50f;
 
     public const float MaxSensorAngularVelocity = 3f;

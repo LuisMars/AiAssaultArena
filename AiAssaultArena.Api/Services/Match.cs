@@ -8,17 +8,20 @@ using System.Diagnostics;
 
 namespace AiAssaultArena.Api.Services;
 
-public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner)
+public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, string webClientConnectionId, Dictionary<Guid, string> tankConnectionIds, Action<Match> onRoundEnd)
 {
     public Guid Id { get; } = Guid.NewGuid();
     public float Width { get; set; }
     public float Height { get; set; }
-    public string WebClientConnectionId { get; set; }
-    public Dictionary<Guid, string> TankConnectionIds { get; set; }
-    public bool HasEnded { get; set; }
-    private readonly Runner _runner = runner;
+    internal string WebClientConnectionId { get; set; } = webClientConnectionId;
+    internal Dictionary<Guid, string> TankConnectionIds { get; set; } = tankConnectionIds;
     private IHubContext<MatchHub, IMatchServer> Context { get; set; } = context;
-    private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+    public bool HasEnded { get; set; }
+
+    private readonly Action<Match> _onRoundEnd = onRoundEnd;
+    private readonly Runner _runner = runner;
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
 
     public async Task StartAsync()
     {
@@ -57,36 +60,31 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner)
             {
                 // Calculate elapsed time since the last iteration
                 var deltaSeconds = (float)stopwatch.Elapsed.TotalSeconds;
-                updateElapsed += deltaSeconds;
-                stopwatch.Restart();
-                // Perform game update with the dynamic timestep
-                runner.Update(deltaSeconds);
 
-                updates++;
-
-                if (updateElapsed > frameRate)
+                if (deltaSeconds <= frameRate)
                 {
-                    // Prepare the game state response without awaiting
-                    var updatesPerSecond = updates / (ulong)(1 + totalTime.Elapsed.TotalSeconds);
-                    var gameStateResponse = runner.GetGameStateResponse(totalTime.Elapsed, updatesPerSecond);
-                    //Console.WriteLine($"deltaNanoseconds: {1000000000 * deltaSeconds}\tUpdatesPerSecond: {updatesPerSecond}");
+                    continue;
+                }
 
-                    // Send the game state response without awaiting
-                    updateElapsed = 0;
-                    _ = Task.Run(() =>
+                stopwatch.Restart();
+                runner.Update(deltaSeconds);
+                updates++;
+                var updatesPerSecond = updates / (ulong)(1 + totalTime.Elapsed.TotalSeconds);
+                var gameStateResponse = runner.GetGameStateResponse(totalTime.Elapsed, updatesPerSecond);
+
+                // Send the game state response without awaiting
+                updateElapsed -= frameRate;
+
+                await Context.Clients.Client(WebClientConnectionId).OnGameUpdated(gameStateResponse);
+
+                foreach (var tank in _runner.Tanks)
+                {
+                    var connectionId = TankConnectionIds[tank.Id];
+
+                    if (tank is not null)
                     {
-                        Context.Clients.Client(WebClientConnectionId).OnGameUpdated(gameStateResponse);
-
-                        foreach (var tank in _runner.Tanks)
-                        {
-                            var connectionId = TankConnectionIds[tank.Id];
-
-                            if (tank is not null)
-                            {
-                                Context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(), runner.Sensors[tank.Id].ToResponse());
-                            }
-                        }
-                    }, stoppingToken);
+                        await Context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(), runner.Sensors[tank.Id].ToResponse());
+                    }
                 }
 
                 if (runner.Tanks.Any(t => t.Health <= 0) || totalTime.Elapsed.TotalMinutes > 1)
@@ -101,6 +99,7 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner)
             }
         }
 
+        _onRoundEnd(this);
         Console.WriteLine($"Match {Id} ended");
     }
 

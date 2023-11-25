@@ -24,6 +24,11 @@ public class MatchRepository
         return _connectedTanks.Values.Where(t => t.MatchId is null);
     }
 
+    public IEnumerable<TankDbo> GetAllTanks()
+    {
+        return _connectedTanks.Values;
+    }
+
     public void AddTank(Guid tankId, string connectionId, string tankName)
     {
         _connectedTanks[tankId] = new TankDbo

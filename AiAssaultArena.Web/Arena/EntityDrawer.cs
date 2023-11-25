@@ -89,6 +89,9 @@ public class EntityDrawer
         _spriteBatch.Draw(_sensor, sensorShadowPosition, null, shadowColor, tank.BodyRotation + tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
         _spriteBatch.Draw(_sensor, sensorPosition, null, Color.White, tank.BodyRotation + tank.SensorRotation, origin, scale, SpriteEffects.None, 1);
 
+        var sensorEnd = position + new Vector2(0, 3000).Rotate(tank.BodyRotation + tank.SensorRotation);
+        _spriteBatch.DrawLine(position, sensorEnd, color);
+
         //var rectangle = new RectangleF((tank.Position.X, tank.Position.Y), new Size2(_parameters.Width, _parameters.Height));
         //_spriteBatch.DrawRectangle(rectangle, Color.White, tank.BodyRotation, origin, 1f);
         //var end = position + new Vector2(0, 50).Rotate(tank.BodyRotation + tank.TurretRotation);

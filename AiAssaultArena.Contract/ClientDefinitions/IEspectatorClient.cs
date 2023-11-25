@@ -10,14 +10,14 @@ public interface IMatchHubClient : ISharedClient
 {
     Task OnGameUpdated(GameStateResponse gameStateResponse);
 
-    Task OnTankConnected(string tankName, Guid tankId);
+    Task OnTankAvailable(string tankName, Guid tankId);
 
-    Task OnTankDisconnected(Guid tankId);
+    Task OnTankUnavailable(Guid tankId);
 }
 
 public interface ITankClient : ISharedClient
 {
-    Task OnTankReceived(TankReceivedResponse tankReceivedResponse);
+    Task OnRegisterSuccesfull(TankReceivedResponse tankReceivedResponse);
     Task OnTankStateUpdated(TankResponse gameStateResponse, SensorResponse? sensorResponse);
 }
 

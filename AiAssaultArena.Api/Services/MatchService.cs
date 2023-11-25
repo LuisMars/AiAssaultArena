@@ -5,7 +5,6 @@ using AiAssaultArena.Simulation;
 using AiAssaultArena.Simulation.Entities;
 using AiAssaultArena.Simulation.Math;
 using Microsoft.AspNetCore.SignalR;
-using Microsoft.Extensions.FileSystemGlobbing;
 
 namespace AiAssaultArena.Api.Services;
 
@@ -13,17 +12,12 @@ public class MatchService
 {
     private readonly float _width = 1200;
     private readonly float _height = 720;
-    private readonly Dictionary<string, Guid> _connections = [];
 
     private readonly IHubContext<MatchHub, IMatchServer> _context;
-
-
-    private readonly SemaphoreSlim _semaphoreSlim = new(1);
     private readonly MatchRepository _matchRepository;
 
     public MatchService(IHubContext<MatchHub, IMatchServer> context, MatchRepository matchRepository)
     {
-        //Runner = new Runner(_width, _height);
         _context = context;
         _matchRepository = matchRepository;
         _ = Task.Run(async () =>
@@ -33,9 +27,22 @@ public class MatchService
                 try
                 {
                     await Task.Delay(1000);
-                    foreach (var tank in _matchRepository.GetAvailableTanks())
+                    foreach (var tank in _matchRepository.GetAllTanks())
                     {
-                        await _context.Clients.Group("Spectators").OnTankConnected(tank.Name, tank.Id);
+                        if (tank.MatchId is null)
+                        {
+                            await _context.Clients.Group("Spectators").OnTankAvailable(tank.Name, tank.Id);
+                            continue;
+                        }
+
+                        if (tank.MatchId.HasValue && _matchRepository.TryGetMatch(tank.MatchId.Value, out var match))
+                        {
+                            await _context.Clients.GroupExcept("Spectators", match.WebClientConnectionId).OnTankUnavailable(tank.Id);
+                        }
+                        else
+                        {
+                            await _context.Clients.Group("Spectators").OnTankUnavailable(tank.Id);
+                        }
                     }
                 }
                 catch
@@ -50,8 +57,8 @@ public class MatchService
     {
         var tankId = Guid.NewGuid();
         _matchRepository.AddTank(tankId, connectionId, tankName);
-        await _context.Clients.Group("Spectators").OnTankConnected(tankName, tankId);
-        await _context.Clients.Client(connectionId).OnTankReceived(new TankReceivedResponse { TankId = tankId });
+        await _context.Clients.Group("Spectators").OnTankAvailable(tankName, tankId);
+        await _context.Clients.Client(connectionId).OnRegisterSuccesfull(new TankReceivedResponse { TankId = tankId });
         Console.WriteLine($"Added tank {tankId}: {tankName}");
     }
 
@@ -62,7 +69,7 @@ public class MatchService
             Console.WriteLine($"ConnectionId {connectionId} has no tank associated with it");
             return;
         }
-        if (!_matchRepository.TryGetMatch(tank.MatchId!.Value, out var match))
+        if (tank.MatchId is null || !_matchRepository.TryGetMatch(tank.MatchId.Value, out var match))
         {
             Console.WriteLine($"Tank {tank.Id} is not currently in a match");
             return;
@@ -70,25 +77,58 @@ public class MatchService
         match.UpdateTank(tank.Id, parameters);
     }
 
-    public async Task RemoveTankAsync(string connectionId)
+    public async Task RemoveConnectionAsync(string connectionId)
+    {
+        if (await RemoveTankAsync(connectionId))
+        {
+            Console.WriteLine($"Removed tank with connectionId {connectionId}");
+            return;
+        }
+
+        if (await RemoveMatchAsync(connectionId))
+        {
+            Console.WriteLine($"Removed match with connectionId {connectionId}");
+        }
+    }
+
+    public async Task<bool> RemoveTankAsync(string connectionId)
     {
         if (!_matchRepository.TryGetTank(connectionId, out var tank))
         {
             Console.WriteLine($"ConnectionId {connectionId} has no tank associated with it");
-            return;
+            return false;
         }
         _matchRepository.RemoveTank(tank);
+        await _context.Clients.Group("Spectators").OnTankUnavailable(tank.Id);
         Console.WriteLine($"Removed tank {tank.Id}");
-
         if (!_matchRepository.TryGetMatch(tank.MatchId!.Value, out var match))
         {
             Console.WriteLine($"Tank {tank.Id} is not currently in a match");
-            return;
+            return true;
         }
 
-        _matchRepository.RemoveMatch(match);
-        await match.EndRoundAsync();
+        await EndMatch(match);
         Console.WriteLine($"Match {match.Id} ended because {tank.Id} was removed");
+        return true;
+    }
+
+    public async Task<bool> RemoveMatchAsync(string connectionId)
+    {
+        if (!_matchRepository.TryGetMatch(connectionId, out var match))
+        {
+            Console.WriteLine($"ConnectionId {connectionId} has no match associated with it");
+            return false;
+        }
+
+        await EndMatch(match);
+        Console.WriteLine($"Match {match.Id} was removed");
+        return true;
+    }
+
+    private async Task EndMatch(Match match)
+    {
+        await match.EndRoundAsync();
+        _matchRepository.RemoveMatch(match);
     }
 
     public async Task StartMatchAsync(string connectionId, Guid tankAId, Guid tankBId)
@@ -121,8 +161,7 @@ public class MatchService
 
         if (_matchRepository.TryGetMatch(connectionId, out var existingMatch))
         {
-            await existingMatch.EndRoundAsync();
-            _matchRepository.RemoveMatch(existingMatch);
+            await EndMatch(existingMatch);
             Console.WriteLine($"Existing match {existingMatch.Id} was removed");
         }
 
@@ -132,16 +171,16 @@ public class MatchService
         runner.AddTank(tankA);
         runner.AddTank(tankB);
 
-        var match = new Match(_context, runner)
-        {
-            Width = _width,
-            Height = _height,
-            WebClientConnectionId = connectionId,
-            TankConnectionIds = new Dictionary<Guid, string>
+        var tankConnectionIds = new Dictionary<Guid, string>
             {
                 { tankAId, tankAInfo.ConnectionId },
                 { tankBId, tankBInfo.ConnectionId }
-            }
+            };
+
+        var match = new Match(_context, runner, connectionId, tankConnectionIds, _matchRepository.RemoveMatch)
+        {
+            Width = _width,
+            Height = _height
         };
 
         tankAInfo.MatchId = match.Id;

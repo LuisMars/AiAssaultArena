@@ -161,9 +161,10 @@ public static class Collider
 
     public static bool Senses(this TankEntity tank, TankEntity other, out Vector2 intersection, out float distanceSquared)
     {
-        var sensorEnd = tank.Position + new Vector2(0, float.MaxValue).Rotate(tank.BodyRotation + tank.SensorRotation);
+        var sensorEnd = tank.Position + new Vector2(0, 1000000).Rotate(tank.BodyRotation + tank.SensorRotation);
         var cornersOther = GetCorners(other);
         distanceSquared = float.MaxValue;
+        var foundIntersection = false;
         intersection = new Vector2();
         for (int i = 0; i < 4; i++)
         {
@@ -173,6 +174,7 @@ public static class Collider
             if (LinesIntersect(tank.Position, sensorEnd, rectLineStart, rectLineEnd, out var localIntersection))
             {
                 var localDistance = (tank.Position - localIntersection).LengthSquared();
+                foundIntersection = true;
                 if (localDistance < distanceSquared)
                 {
                     distanceSquared = localDistance;
@@ -181,33 +183,36 @@ public static class Collider
             }
         }
                 
-        return distanceSquared != float.MaxValue;
+        return foundIntersection;
     }
 
-    private static bool LinesIntersect(Vector2 p1, Vector2 p2, Vector2 p3, Vector2 p4, out Vector2 intersection)
+    private static bool LinesIntersect(Vector2 lineStartA, Vector2 lineEndA, Vector2 lineStartB, Vector2 lineEndB, out Vector2 intersection)
     {
         intersection = new Vector2();
 
         // Calculate the direction of the lines
-        Vector2 d1 = p2 - p1;
-        Vector2 d2 = p4 - p3;
+        Vector2 dirA = lineEndA - lineStartA;
+        Vector2 dirB = lineEndB - lineStartB;
 
-        // Calculate the cross-product
-        float cross = d1.X * d2.Y - d1.Y * d2.X;
-        if (MathF.Abs(cross) < 1e-8)
+        // Solving the equations for the line intersection:
+        // lineStartA + a * dirA = lineStartB + b * dirB
+        float a = dirB.X * (lineStartA.Y - lineStartB.Y) - dirB.Y * (lineStartA.X - lineStartB.X);
+        float b = dirA.X * (lineStartA.Y - lineStartB.Y) - dirA.Y * (lineStartA.X - lineStartB.X);
+        float denominator = dirB.Y * dirA.X - dirB.X * dirA.Y;
+
+        // Check if lines are parallel (denominator is zero)
+        if (MathF.Abs(denominator) < float.Epsilon)
         {
-            // Lines are parallel
             return false;
         }
 
-        // Compute the scalar for intersection point
-        Vector2 d3 = p1 - p3;
-        float t1 = (d3.X * d2.Y - d3.Y * d2.X) / cross;
+        a /= denominator;
+        b /= denominator;
 
-        // Check if the intersection point lies within the first line segment
-        if (t1 >= 0 && t1 <= 1)
+        // Check if the intersection point is within both line segments
+        if (a >= 0 && a <= 1 && b >= 0 && b <= 1)
         {
-            intersection = p1 + t1 * d1;
+            intersection = lineStartA + a * dirA;
             return true;
         }
 

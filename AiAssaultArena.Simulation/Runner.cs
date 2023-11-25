@@ -50,48 +50,54 @@ public class Runner
 
     public void Update(float deltaSeconds)
     {
-        //const int iterations = 5;
-        //var deltaSeconds = (float)gameTime.ElapsedGameTime.TotalSeconds / iterations;
-
-        Walls.ForEach(wall => Tanks.ForEach((tank) => wall.Collided(tank, deltaSeconds)));
-
-        foreach (var (tankA, tankB) in MatchTanks())
-        {
-            tankA.Collided(tankB, deltaSeconds);
-        }
-
-        foreach (var (bulletId, bullet) in Bullets)
-        {
-            var tank = Tanks.FirstOrDefault(tank => bullet.ShooterId != tank.Id && bullet.Collided(tank));
-            if (tank is not null)
-            {
-                tank.Health -= 10;
-                Bullets.Remove(bulletId, out _);
-                continue;
-            }
-            if (Walls.Any(bullet.Collided) || bullet.Position.LengthSquared() > 10000000)
-            {
-                Bullets.Remove(bulletId, out _);
-            }
-        }
-
-        Tanks.ForEach(tank => TankUpdater.Update(deltaSeconds, tank));
-        Bullets.Values.ToList().ForEach(bullet => BulletUpdater.Update(deltaSeconds, bullet));
+        const int iterations = 5;
+        deltaSeconds /= iterations;
 
         Tanks.ForEach(t => Sensors[t.Id] = null);
-        foreach (var (tankA, tankB) in MatchTanks())
+
+        for (var i = 0; i < iterations; i++)
         {
-            if (tankA.Senses(tankB, out var intersectionA, out var distanceSquaredA) && (Sensors[tankA.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredA)
+            Walls.ForEach(wall => Tanks.ForEach((tank) => wall.Collided(tank, deltaSeconds)));
+
+            foreach (var (tankA, tankB) in MatchTanks())
             {
-                Sensors[tankA.Id] = new(tankB, intersectionA, distanceSquaredA);
+                tankA.Collided(tankB, deltaSeconds);
             }
-            if (tankB.Senses(tankA, out var intersectionB, out var distanceSquaredB) && (Sensors[tankB.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredB)
+
+            foreach (var (bulletId, bullet) in Bullets)
             {
-                Sensors[tankB.Id] = new(tankA, intersectionB, distanceSquaredB);
+                var tank = Tanks.FirstOrDefault(tank => bullet.ShooterId != tank.Id && bullet.Collided(tank));
+                if (tank is not null)
+                {
+                    tank.Health -= 10;
+                    Bullets.Remove(bulletId, out _);
+                    continue;
+                }
+                if (Walls.Any(bullet.Collided) || bullet.Position.LengthSquared() > 10000000)
+                {
+                    Bullets.Remove(bulletId, out _);
+                }
             }
-        }
-        Tanks.ForEach(tank => TankUpdater.Update(deltaSeconds, tank));
+
+            Tanks.ForEach(tank => TankUpdater.Update(deltaSeconds, tank));
+            Bullets.Values.ToList().ForEach(bullet => BulletUpdater.Update(deltaSeconds, bullet));
+
+            Tanks.ForEach(tank => TankUpdater.Update(deltaSeconds, tank));
+
+            foreach (var (tankA, tankB) in MatchTanks())
+            {
+                if (tankA.Senses(tankB, out var intersectionA, out var distanceSquaredA) && (Sensors[tankA.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredA)
+                {
+                    Sensors[tankA.Id] = new(tankB, intersectionA, distanceSquaredA);
+                }
+                if (tankB.Senses(tankA, out var intersectionB, out var distanceSquaredB) && (Sensors[tankB.Id]?.DistanceSquared ?? float.MaxValue) > distanceSquaredB)
+                {
+                    Sensors[tankB.Id] = new(tankA, intersectionB, distanceSquaredB);
+                }
+            }
+        } 
     }
+
 
     public void UpdateTank(Guid tankId, TankMoveParameters parameters)
     {
