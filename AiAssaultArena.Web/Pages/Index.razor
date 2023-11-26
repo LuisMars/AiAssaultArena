@@ -7,26 +7,18 @@
 
 @if (!Client.IsConnected)
 {
-    <div>
-        <input @bind-value="@Url">
-        <button @onclick="ConnectAsync">Connect</button>
+    <div class="card dark">
+        <h3>
+            Select your server
+        </h3>
+        <input class="light" @bind-value="@Url">
+        <button class="red" @onclick="ConnectAsync">Connect</button>
     </div>
     return;
 }
 
-<div style="height: 3rem">
-</div>
-<div id="canvasHolder" style="
-    margin:0%;
-    position: fixed;
-    top: 0px;
-    right: 0px;
-    bottom: 0px;
-    left: 0px;
-    width:100vw;
-    height:100vh;
-">
-    <canvas id="theCanvas" style="touch-action:none;"></canvas>
+<div id="canvasHolder">
+    <canvas id="theCanvas"></canvas>
 </div>
 
 @if (!Client.IsConnected || Game is null || Game.Tanks is null)
@@ -34,86 +26,132 @@
     return;
 }
 
-<div style="position: absolute; top: 0; left: 0; color: white; background: #0008; padding: 1rem; height: 100vh;">
 
-    @if (!Game.Tanks.Any())
-    {
-        <div>
-            <div>
-                Available tanks:
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 1rem">
-                <div>
-                    First Tank
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 1rem">
-                    @foreach (var (id, tank) in Game.ConnectedTanks)
-                    {
-                        var tankId = id;
-                        <button @onclick="() => TankAId = id" style="background: @(TankAId != tankId ? "white" : "green")">
-                            @tank
-                        </button>
-                    }
-                </div>
-
-                <div>
-                    Second Tank
-                </div>
-                <div style="display: flex; flex-direction: column; gap: 1rem">
-                    @foreach (var (id, tank) in Game.ConnectedTanks)
-                    {
-                        var tankId = id;
-                        <button @onclick="() => TankBId = id" style="background: @(TankBId != tankId ? "white" : "green")">
-                            @tank
-                        </button>
-                    }
-                </div>
-
-                <button @onclick="() => Client.Server.StartMatchAsync(TankAId, TankBId)">
-                    Start
+@if (!Game.Tanks.Any())
+{
+    <div class="dark sidebar">
+        <h5>
+            First Tank
+        </h5>
+        <div class="button-container">
+            @foreach (var (id, tank) in Game.ConnectedTanks)
+            {
+                var tankId = id; 
+                var color = "light";
+                var disabled = false;
+                if (tankId == TankAId)
+                {
+                    color = "red";
+                }
+                else if (tankId == TankBId)
+                {
+                    disabled = true;
+                    color = "dark";
+                }
+                <button @onclick="() => TankAId = id" class="@color" disabled="@disabled">
+                    @tank
                 </button>
+            }
+        </div>
+
+        <h5>
+            Second Tank
+        </h5>
+        <div class="button-container">
+            @foreach (var (id, tank) in Game.ConnectedTanks)
+            {
+                var tankId = id;
+                var color = "light";
+                var disabled = false;
+                if (tankId == TankBId)
+                {
+                    color = "green";
+                }
+                else if (tankId == TankAId)
+                {
+                    disabled = true;
+                    color = "dark";
+                }
+                <button @onclick="() => TankBId = id" class="@color" disabled="@disabled">
+                    @tank
+                </button>
+            }
+        </div>
+
+        <button class="light" @onclick="() => Client.Server.StartMatchAsync(TankAId, TankBId)">
+            Start
+        </button>
+
+    </div>
+}
+else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
+{
+    var tankA = Game.Tanks[0];
+    var tankAName = Game.ConnectedTanks[tankA.Id];
+
+    var tankB = Game.Tanks[1];
+    var tankBName = Game.ConnectedTanks[tankB.Id];
+    <div class="sidebar sidebar--slim">
+        <div class="info card red">
+            <h4>
+                @tankAName
+            </h4>
+            <div>
+                <div>
+                    Health
+                </div>
+                <div class="progress-bar progress-bar--red light">
+                    <div class="progress-bar--progress" style="width: @(tankA.Health)%">
+                    </div>
+                </div>
+            </div>
+            <div>
+                <div>
+                    Turret heat
+                </div>
+                <div class="progress-bar progress-bar--dark light">
+                    <div class="progress-bar--progress" style="width: @((int)((tankA.CurrentTurretHeat / 0.5f) * 100))%">
+                    </div>
+                </div>
             </div>
         </div>
-    }
-    else
-    {
-        @foreach (var tank in Game.Tanks)
-        {
-            @if (!Game.ConnectedTanks.ContainsKey(tank.Id))
-            {
-                continue;
-            }
+        <div class="info card green">
+            <h4>
+                @tankBName
+            </h4>
             <div>
                 <div>
-                    @Game.ConnectedTanks[tank.Id]
+                    Health
                 </div>
-                <div>
-                    <div>
-                        Health
+                <div class="progress-bar progress-bar--red light">
+                    <div class="progress-bar--progress" style="width: @(tankB.Health)%">
                     </div>
-
-                    <progress max="10000" value="@((int)(tank.Health * 100))" />
-                </div>
-                <div>
-                    <div>
-                        Cooldown
-                    </div>
-
-                    <progress max="100" value="@((int)(tank.CurrentTurretHeat * 100))" />
                 </div>
             </div>
-        }
-        <div>
             <div>
-                Server info
+                <div>
+                    Turret heat
+                </div>
+                <div class="progress-bar progress-bar--dark light">
+                    <div class="progress-bar--progress" style="width: @((int)((tankB.CurrentTurretHeat / 0.5f) * 100))%">
+                    </div>
+                </div>
             </div>
+        </div>
+
+    </div>
+    <div class="server-stats card light">
+        <h5>
+            Server info
+        </h5>
+        <div class="server-stats--data">
             <div>
                 @Game.UpdatesPerSecond ups
             </div>
 
             <div>
-                @Game.Elapsed
+                @Game.Elapsed.ToString(@"mm\:ss\.ff")
             </div>
         </div>
-    }
-</div>
+    </div>
+}

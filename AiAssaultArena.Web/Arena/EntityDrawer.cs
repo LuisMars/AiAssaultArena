@@ -34,9 +34,13 @@ public class EntityDrawer
         return new Color((colorBytes[0] + colorBytes[3]) / 2, (colorBytes[1] + colorBytes[4]) / 2, (colorBytes[2] + colorBytes[5]) / 2);
     }
 
-    public void DrawBullet(BulletResponse bullet)
+    public void DrawBullet(BulletResponse bullet, int colorIndex)
     {
-        var color = FromId(bullet.ShooterId);
+        var color = new Color(248, 108, 117);
+        if (colorIndex == 1)
+        {
+            color = new Color(158, 233, 237);
+        }
         var scale = _parameters.BulletRadius / _bullet.Width;
         var origin = new Vector2(_parameters.BulletRadius * 0.5f);
         var position = new Vector2(bullet.Position.X, bullet.Position.Y);
@@ -58,9 +62,13 @@ public class EntityDrawer
         _spriteBatch.FillRectangle(wall.Start.X, wall.Start.Y, wall.Width, wall.Height, Color.Red, 1);
     }
 
-    public void DrawTank(TankResponse tank)
+    public void DrawTank(TankResponse tank, int colorIndex)
     {
-        var color = FromId(tank.Id);
+        var color = new Color(248, 108, 117);
+        if (colorIndex == 1)
+        {
+            color = new Color(158, 233, 237);
+        }
         var size = new Vector2(_parameters.Width, _parameters.Height);
         var origin = size * 0.5f;
         var position = new Vector2(tank.Position.X, tank.Position.Y);

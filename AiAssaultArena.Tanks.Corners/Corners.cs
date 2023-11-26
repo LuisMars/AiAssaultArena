@@ -49,6 +49,8 @@ public class Corners : BaseTank
         // Set movement parameters
         _moveParameters.Acceleration = distance / (_tankRadius * 2 * 5); // Adjust as needed
         _moveParameters.TurnDirection = GetHeading(angleToTarget - gameStateResponse.BodyRotation);
+        _moveParameters.TurretTurnDirection = GetHeading(angleToTarget - gameStateResponse.TurretRotation + MathF.PI * 0.5f);
+        _moveParameters.SensorTurnDirection = GetHeading(angleToTarget - gameStateResponse.SensorRotation + MathF.PI * 0.5f);
         _moveParameters.Shoot = true;
         return SendAsync(_moveParameters);
     }

@@ -1,0 +1,283 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;600&family=Audiowide&display=swap');
+
+:root {
+    /* color constants */
+    --inner-shadow-size: 2px;
+    --inner-shadow-dark-size: -2px;
+    /* dark variant */
+    --dark-border: #10152a80;
+    --dark-bg-light: #476f86;
+    --dark-bg-dark: #1f304a;
+    --dark-bg: #2f4f66;
+    --dark-text: #ffffff;
+    --dark-box-shadow-inner: inset var(--inner-shadow-size) var(--inner-shadow-size) 0 0 var(--dark-bg-light), inset var(--inner-shadow-dark-size) var(--inner-shadow-dark-size) 0 0 var(--dark-bg-dark);
+    /* light variant */
+    --light-border: #6999ad80;
+    --light-bg-light: #ffffff;
+    --light-bg-dark: #c0d6dc;
+    --light-bg: #dff3f4;
+    --light-text: #000000;
+    --light-box-shadow-inner: inset var(--inner-shadow-size) var(--inner-shadow-size) 0 0 var(--light-bg-light), inset var(--inner-shadow-dark-size) var(--inner-shadow-dark-size) 0 0 var(--light-bg-dark);
+    /* red variant */
+    --red-border: #49162580;
+    --red-bg-light: #e8a08c;
+    --red-bg-dark: #94404e;
+    --red-bg: #f86c75;
+    --red-text: #ffffff;
+    --red-box-shadow-inner: inset var(--inner-shadow-size) var(--inner-shadow-size) 0 0 var(--red-bg-light), inset var(--inner-shadow-dark-size) var(--inner-shadow-dark-size) 0 0 var(--red-bg-dark);
+    /* green variant */
+    --green-border: #1f304a80;
+    --green-bg-light: #dff3f4;
+    --green-bg-dark: #6999ad;
+    --green-bg: #9ee9ed;
+    --green-text: #2f4f66;
+    --green-box-shadow-inner: inset var(--inner-shadow-size) var(--inner-shadow-size) 0 0 var(--green-bg-light), inset var(--inner-shadow-dark-size) var(--inner-shadow-dark-size) 0 0 var(--green-bg-dark);
+    /* card */
+    --card-padding: 2rem;
+    --card-border-radius: 0;
+    --border-size: 1px;
+    /* button */
+    --button-padding: 0.5rem 1.5rem;
+    --button-border-radius: 0;
+    /* other stuff */
+    /*--box-shadow: 0 0.5rem 1rem 0.25rem #00000040;*/
+    --box-shadow: 4px 4px 0 0 #00000040;
+    --box-shadow-hover: 0 0 0 0 #00000040;
+    --transition: all 500ms ease;
+}
+
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+* {
+    margin: 0;
+}
+
+body {
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    font-family: 'Albert Sans', sans-serif;
+    font-size: 1rem;
+    background-color: var(--light-bg-dark);
+    color: var(--light-text);
+}
+
+img, picture, video, canvas, svg {
+    display: block;
+    max-width: 100%;
+}
+
+input, button, textarea, select {
+    font: inherit;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+p {
+    overflow-wrap: break-word;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Audiowide', sans-serif;
+    overflow-wrap: break-word;
+    font-size: 1rem;
+    font-weight: normal;
+}
+
+#root, #__next {
+    isolation: isolate;
+}
+
+button {
+    font-weight: bold;
+    text-transform: uppercase;
+    padding: var(--button-padding);
+    border-radius: var(--button-border-radius);
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+button:disabled {
+    cursor: not-allowed;
+    opacity: 0.25;
+}
+
+input {
+    padding: var(--button-padding);
+    border-radius: var(--button-border-radius);
+    transition: var(--transition);
+}
+
+    input:focus {
+        outline: none;
+    }
+
+.card {
+    padding: var(--card-padding);
+    border-radius: var(--card-border-radius);
+    transition: var(--transition);
+}
+
+    .card:hover {
+    }
+
+.dark {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+    border: var(--border-size) solid var(--dark-border);
+    box-shadow: var(--box-shadow), var(--dark-box-shadow-inner);
+}
+
+.light {
+    background-color: var(--light-bg);
+    color: var(--light-text);
+    border: var(--border-size) solid var(--light-border);
+    box-shadow: var(--box-shadow), var(--light-box-shadow-inner);
+}
+
+
+.red {
+    background-color: var(--red-bg);
+    color: var(--red-text);
+    border: var(--border-size) solid var(--red-border);
+    box-shadow: var(--box-shadow), var(--red-box-shadow-inner);
+}
+
+
+.green {
+    background-color: var(--green-bg);
+    color: var(--green-text);
+    border: var(--border-size) solid var(--green-border);
+    box-shadow: var(--box-shadow), var(--green-box-shadow-inner);
+}
+
+button.dark:hover {
+    box-shadow: var(--box-shadow-hover), var(--dark-box-shadow-inner);
+}
+
+button.light:hover {
+    box-shadow: var(--box-shadow-hover), var(--light-box-shadow-inner);
+}
+
+button.red:hover {
+    box-shadow: var(--box-shadow-hover), var(--red-box-shadow-inner);
+}
+
+button.green:hover {
+    box-shadow: var(--box-shadow-hover), var(--green-box-shadow-inner);
+}
+
+.main-header {
+    background-color: var(--dark-bg);
+    color: var(--dark-text);
+    box-shadow: var(--box-shadow), var(--dark-box-shadow-inner);
+    padding: 1rem 2rem;
+    z-index: 100;
+    position: absolute;
+    width: 100%;
+}
+
+.main-container {
+    display: flex;
+    width: 100svw;
+    height: 100svh;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    height: 100svh;
+    overflow-y: auto;
+    top: 0;
+    left: 0;
+    width: 15rem;
+    padding: 5rem 2rem;
+    gap: 2rem;
+    z-index: 1;
+    transition: var(--transition);
+}
+
+.info {
+    padding: 1rem;
+    gap: 1rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.progress-bar {
+    height: 1rem;
+    border: none;
+}
+
+.progress-bar--progress {
+    height: 1rem;
+    width: 0%;
+}
+
+.progress-bar--dark .progress-bar--progress {
+    background-color: var(--dark-bg);
+    box-shadow: var(--dark-box-shadow-inner);
+}
+
+.progress-bar--light .progress-bar--progress {
+    background-color: var(--light-bg);
+    box-shadow: var(--light-box-shadow-inner);
+}
+
+.progress-bar--red .progress-bar--progress {
+    background-color: var(--red-bg);
+    box-shadow: var(--red-box-shadow-inner);
+}
+
+.progress-bar--green .progress-bar--progress {
+    background-color: var(--green-bg);
+    box-shadow: var(--green-box-shadow-inner);
+}
+
+
+.server-stats {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: max-content;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.server-stats--data {
+    font-family: monospace;
+    gap: 1rem;
+}
+
+#canvasHolder {
+    margin: 0%;
+    position: fixed;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    left: 0px;
+    width: 100vw;
+    height: 100vh;
+}
+
+#theCanvas {
+    left: 15rem;
+    top: 5rem;
+    width: calc(100svw - 15rem);
+    touch-action: none;
+}

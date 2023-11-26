@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace AiAssaultArena.Web;
@@ -167,10 +168,21 @@ public class MainGame : Game, IMatchHubClient
         SpriteBatch.Begin(transformMatrix: GetTransformMatrix());
         //SpriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(Graphics.GraphicsDevice.Viewport.Width / 2, Graphics.GraphicsDevice.Viewport.Height / 2, 0));
 
-        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2 + 4, -Parameters.ArenaHeight / 2 + 4, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0.75f, 0.75f, 0.75f));
-        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0.5f, 0.5f, 0.5f));
-        Tanks.ForEach(EntityDrawer.DrawTank);
-        Bullets.ForEach(EntityDrawer.DrawBullet);
+        var arenaColor = new Color(223, 243, 244);
+        var darkArenaColor = new Color(192, 214, 220);
+        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2 + 8, -Parameters.ArenaHeight / 2 + 8, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0, 0, 0, 0.125f));
+        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, Color.White);
+        SpriteBatch.FillRectangle(4 + -Parameters.ArenaWidth / 2, 4 + -Parameters.ArenaHeight / 2, Parameters.ArenaWidth - 4, Parameters.ArenaHeight - 4, darkArenaColor);
+        SpriteBatch.FillRectangle(4 + -Parameters.ArenaWidth / 2, 4 + -Parameters.ArenaHeight / 2, Parameters.ArenaWidth - 8, Parameters.ArenaHeight - 8, arenaColor);
+        for (int i = 0; i < Tanks.Count; i++)
+        {
+            var tank = Tanks[i];
+            EntityDrawer.DrawTank(tank, i);
+            foreach (var bullet in Bullets.Where(b => b.ShooterId == tank.Id))
+            {
+                EntityDrawer.DrawBullet(bullet, i);
+            }
+        }
         //Walls.ForEach(EntityDrawer.DrawWall);
         SpriteBatch.End();
 
