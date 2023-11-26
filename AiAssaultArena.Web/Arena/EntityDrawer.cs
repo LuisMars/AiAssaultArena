@@ -36,10 +36,10 @@ public class EntityDrawer
 
     public void DrawBullet(BulletResponse bullet, int colorIndex)
     {
-        var color = new Color(248, 108, 117);
+        var color = new Color(191, 79, 81);
         if (colorIndex == 1)
         {
-            color = new Color(158, 233, 237);
+            color = new Color(84, 193, 117);
         }
         var scale = _parameters.BulletRadius / _bullet.Width;
         var origin = new Vector2(_parameters.BulletRadius * 0.5f);
@@ -64,10 +64,10 @@ public class EntityDrawer
 
     public void DrawTank(TankResponse tank, int colorIndex)
     {
-        var color = new Color(248, 108, 117);
+        var color = new Color(191, 79, 81);
         if (colorIndex == 1)
         {
-            color = new Color(158, 233, 237);
+            color = new Color(84, 193, 117);
         }
         var size = new Vector2(_parameters.Width, _parameters.Height);
         var origin = size * 0.5f;

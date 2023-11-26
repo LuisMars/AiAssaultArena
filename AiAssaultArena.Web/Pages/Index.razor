@@ -9,10 +9,10 @@
 {
     <div class="card dark">
         <h3>
-            Select your server
+            Connect to a server
         </h3>
-        <input class="light" @bind-value="@Url">
-        <button class="red" @onclick="ConnectAsync">Connect</button>
+        <input class="lighter" @bind-value="@Url">
+        <button class="green" @onclick="ConnectAsync">Connect</button>
     </div>
     return;
 }
@@ -36,7 +36,7 @@
         <div class="button-container">
             @foreach (var (id, tank) in Game.ConnectedTanks)
             {
-                var tankId = id; 
+                var tankId = id;
                 var color = "light";
                 var disabled = false;
                 if (tankId == TankAId)
@@ -46,12 +46,15 @@
                 else if (tankId == TankBId)
                 {
                     disabled = true;
-                    color = "dark";
+                    color = "darker";
                 }
                 <button @onclick="() => TankAId = id" class="@color" disabled="@disabled">
                     @tank
                 </button>
             }
+            <button @onclick="() => TankAId = null" class="dark">
+                None
+            </button>
         </div>
 
         <h5>
@@ -70,16 +73,22 @@
                 else if (tankId == TankAId)
                 {
                     disabled = true;
-                    color = "dark";
+                    color = "darker";
                 }
                 <button @onclick="() => TankBId = id" class="@color" disabled="@disabled">
                     @tank
                 </button>
             }
-        </div>
 
-        <button class="light" @onclick="() => Client.Server.StartMatchAsync(TankAId, TankBId)">
-            Start
+            <button @onclick="() => TankBId = null" class="dark">
+                None
+            </button>
+        </div>
+        @{
+            var canStart = TankAId.HasValue && TankBId.HasValue;
+        }
+        <button class="@(canStart ? "blue" : "darker")" @onclick="() => Client.Server.StartMatchAsync(TankAId.Value, TankBId.Value)" disabled="@(!canStart)">
+            Start match
         </button>
 
     </div>
@@ -92,15 +101,40 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
     var tankB = Game.Tanks[1];
     var tankBName = Game.ConnectedTanks[tankB.Id];
     <div class="sidebar sidebar--slim">
-        <div class="info card red">
-            <h4>
-                @tankAName
-            </h4>
+
+        <div class="info card dark">
+            <div class="info--header">
+                <h4>
+                    Match info
+                </h4>
+            </div>
+            <div>
+                <div>
+                    Remaining
+                </div>
+                <div class="progress-bar progress-bar--blue light">
+                    <div class="progress-bar--progress" style="width: @((int)(100 - (100 * Game.Elapsed.TotalMilliseconds / 60000)))%">
+                    </div>
+                </div>
+            </div>
+            @if (Game.IsGameOver)
+            {
+                <button @onclick="() => Client.Server.StartMatchAsync(TankAId.Value, TankBId.Value)" class="green">Restart</button>
+                <button @onclick="() => Game.Clear()" class="red">Select new tanks</button>
+            }
+        </div>
+        <div class="info card dark">
+            <div class="info--header">
+                <h4>
+                    @tankAName
+                </h4>
+                <span class="red chip"></span>
+            </div>
             <div>
                 <div>
                     Health
                 </div>
-                <div class="progress-bar progress-bar--red light">
+                <div class="progress-bar progress-bar--@(tankA.Health > 50 ? "green" : "red") light">
                     <div class="progress-bar--progress" style="width: @(tankA.Health)%">
                     </div>
                 </div>
@@ -109,21 +143,24 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
                 <div>
                     Turret heat
                 </div>
-                <div class="progress-bar progress-bar--dark light">
-                    <div class="progress-bar--progress" style="width: @((int)((tankA.CurrentTurretHeat / 0.5f) * 100))%">
+                <div class="progress-bar progress-bar--blue light">
+                    <div class="progress-bar--progress no-transition" style="width: @((int)((tankA.CurrentTurretHeat / 0.5f) * 100))%">
                     </div>
                 </div>
             </div>
         </div>
-        <div class="info card green">
-            <h4>
-                @tankBName
-            </h4>
+        <div class="info card dark">
+            <div class="info--header">
+                <h4>
+                    @tankBName
+                </h4>
+                <span class="green chip"></span>
+            </div>
             <div>
                 <div>
                     Health
                 </div>
-                <div class="progress-bar progress-bar--red light">
+                <div class="progress-bar progress-bar--@(tankB.Health > 50 ? "green" : "red") light">
                     <div class="progress-bar--progress" style="width: @(tankB.Health)%">
                     </div>
                 </div>
@@ -132,26 +169,17 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
                 <div>
                     Turret heat
                 </div>
-                <div class="progress-bar progress-bar--dark light">
-                    <div class="progress-bar--progress" style="width: @((int)((tankB.CurrentTurretHeat / 0.5f) * 100))%">
+                <div class="progress-bar progress-bar--blue light">
+                    <div class="progress-bar--progress no-transition" style="width: @((int)((tankB.CurrentTurretHeat / 0.5f) * 100))%">
                     </div>
                 </div>
             </div>
         </div>
 
     </div>
-    <div class="server-stats card light">
-        <h5>
-            Server info
-        </h5>
-        <div class="server-stats--data">
-            <div>
-                @Game.UpdatesPerSecond ups
-            </div>
-
-            <div>
-                @Game.Elapsed.ToString(@"mm\:ss\.ff")
-            </div>
-        </div>
-    </div>
 }
+
+<div class="scale">
+    <button @onclick="() => Game.ZoomBy(0.1f)" class="light">+</button>
+    <button @onclick="() => Game.ZoomBy(-0.1f)" class="light">-</button>
+</div>

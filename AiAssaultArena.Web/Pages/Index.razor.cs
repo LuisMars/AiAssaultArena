@@ -15,8 +15,8 @@ public partial class Index
     [Inject]
     public Client Client { get; set; }
 
-    public Guid TankAId { get; set; }
-    public Guid TankBId { get; set; }
+    public Guid? TankAId { get; set; }
+    public Guid? TankBId { get; set; }
     public Guid? Id { get; set; } = null;
     public bool IsInitialized { get; set; }
 

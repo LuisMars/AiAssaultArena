@@ -5,6 +5,7 @@ using AiAssaultArena.Web.Hub;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using Microsoft.Xna.Framework.Input.Touch;
 using MonoGame.Extended;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,14 @@ public class MainGame : Game, IMatchHubClient
     private Texture2D Bullet { get; set; }
     public Action OnMessage { get; set; }
 
+    public bool IsGameOver { get; set; }
+
+    public float Zoom { get; set; } = 1.0f;
+    public Vector2 Pan { get; set; } = new();
+
     public GraphicsDeviceManager Graphics { get; private set; }
+
+
 
     public MainGame(Client client, Action onMessage, Guid? id)
     {
@@ -49,8 +57,14 @@ public class MainGame : Game, IMatchHubClient
         OnMessage = onMessage;
     }
 
+    public void ZoomBy(float amount)
+    {
+        Zoom += amount;
+    }
+
     public Task OnMatchStart(ParametersResponse parameters)
     {
+        IsGameOver = false;
         Parameters = parameters;
         Walls = parameters.Walls;
         EntityDrawer = new EntityDrawer(SpriteBatch, Parameters, Tracks, Body, Turret, Sensor, Bullet);
@@ -70,11 +84,16 @@ public class MainGame : Game, IMatchHubClient
 
     public Task OnRoundEnd()
     {
+        IsGameOver = true;
+        OnMessage();
+        return Task.CompletedTask;
+    }
+
+    public void Clear()
+    {
         Tanks.Clear();
         Bullets.Clear();
         Walls.Clear();
-        OnMessage();
-        return Task.CompletedTask;
     }
 
     public Task OnTankAvailable(string tankName, Guid tankId)
@@ -112,6 +131,8 @@ public class MainGame : Game, IMatchHubClient
         // TODO: Unload any non ContentManager content here
     }
 
+    private MouseState PreviousMouseState { get; set; }
+
     protected override void Update(GameTime gameTime)
     {
         KeyboardState keyboardState = Keyboard.GetState();
@@ -127,6 +148,24 @@ public class MainGame : Game, IMatchHubClient
             Exit();
 #endif
         }
+        // Handle mouse input here
+        var mouseState = Mouse.GetState();
+
+        // Zoom with the mouse wheel
+        Zoom += (mouseState.ScrollWheelValue - PreviousMouseState.ScrollWheelValue) * 0.0005f;
+        Zoom = Math.Max(0.1f, Math.Min(10, Zoom)); // Keep zoom within limits
+
+        // Pan with mouse drag
+        if (mouseState.LeftButton == ButtonState.Pressed)
+        {
+            Pan += new Vector2(PreviousMouseState.X - mouseState.X, PreviousMouseState.Y - mouseState.Y) / Zoom;
+        }
+        if (mouseState.MiddleButton == ButtonState.Pressed)
+        {
+            Pan = new Vector2();
+            Zoom = 1;
+        }
+        PreviousMouseState = mouseState;
 
         base.Update(gameTime);
     }
@@ -144,7 +183,11 @@ public class MainGame : Game, IMatchHubClient
         // Choose the smaller scaling factor to fit within the display
         float scale = Math.Min(1, Math.Min(scaleX, scaleY));
         // Create the transformation matrix
-        Matrix transformMatrix = Matrix.CreateScale(scale) * Matrix.CreateTranslation(Graphics.GraphicsDevice.Viewport.Width / 2, Graphics.GraphicsDevice.Viewport.Height / 2, 0);
+        var scaleMatrix = Matrix.CreateScale(scale, scale, 1);
+        var zoomMatrix = Matrix.CreateScale(Zoom * Zoom, Zoom * Zoom, 1);
+        var centerMatrix = Matrix.CreateTranslation(Graphics.GraphicsDevice.Viewport.Width / 2, Graphics.GraphicsDevice.Viewport.Height / 2, 0);
+        var panMatrix = Matrix.CreateTranslation(-Pan.X, -Pan.Y, 0);
+        Matrix transformMatrix = scaleMatrix * panMatrix * zoomMatrix * centerMatrix;
 
         return transformMatrix;
     }
@@ -168,10 +211,11 @@ public class MainGame : Game, IMatchHubClient
         SpriteBatch.Begin(transformMatrix: GetTransformMatrix());
         //SpriteBatch.Begin(transformMatrix: Matrix.CreateTranslation(Graphics.GraphicsDevice.Viewport.Width / 2, Graphics.GraphicsDevice.Viewport.Height / 2, 0));
 
-        var arenaColor = new Color(223, 243, 244);
-        var darkArenaColor = new Color(192, 214, 220);
+        var arenaColor = new Color(193, 203, 211);
+        var lightArenaColor = new Color(210, 218, 223);
+        var darkArenaColor = new Color(176, 189, 199);
         SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2 + 8, -Parameters.ArenaHeight / 2 + 8, Parameters.ArenaWidth, Parameters.ArenaHeight, new Color(0, 0, 0, 0.125f));
-        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, Color.White);
+        SpriteBatch.FillRectangle(-Parameters.ArenaWidth / 2, -Parameters.ArenaHeight / 2, Parameters.ArenaWidth, Parameters.ArenaHeight, lightArenaColor);
         SpriteBatch.FillRectangle(4 + -Parameters.ArenaWidth / 2, 4 + -Parameters.ArenaHeight / 2, Parameters.ArenaWidth - 4, Parameters.ArenaHeight - 4, darkArenaColor);
         SpriteBatch.FillRectangle(4 + -Parameters.ArenaWidth / 2, 4 + -Parameters.ArenaHeight / 2, Parameters.ArenaWidth - 8, Parameters.ArenaHeight - 8, arenaColor);
         for (int i = 0; i < Tanks.Count; i++)
