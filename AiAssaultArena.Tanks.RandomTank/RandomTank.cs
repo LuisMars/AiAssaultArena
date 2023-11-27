@@ -39,7 +39,7 @@ public class RandomTank : BaseTank
             Acceleration = 1, // Adjust as needed
             TurretTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.TurretRotation),
             SensorTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.SensorRotation),
-            Shoot = gameStateResponse.CurrentTurretHeat == 0
+            Shoot = Random.Shared.NextSingle() > 0.9f
         });
     }
 

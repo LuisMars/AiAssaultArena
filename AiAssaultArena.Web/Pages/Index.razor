@@ -95,11 +95,6 @@
 }
 else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
 {
-    var tankA = Game.Tanks[0];
-    var tankAName = Game.ConnectedTanks[tankA.Id];
-
-    var tankB = Game.Tanks[1];
-    var tankBName = Game.ConnectedTanks[tankB.Id];
     <div class="sidebar sidebar--slim">
 
         <div class="info card dark">
@@ -123,59 +118,79 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
                 <button @onclick="() => Game.Clear()" class="red">Select new tanks</button>
             }
         </div>
-        <div class="info card dark">
-            <div class="info--header">
-                <h4>
-                    @tankAName
-                </h4>
-                <span class="red chip"></span>
-            </div>
-            <div>
-                <div>
-                    Health
-                </div>
-                <div class="progress-bar progress-bar--@(tankA.Health > 50 ? "green" : "red") light">
-                    <div class="progress-bar--progress" style="width: @(tankA.Health)%">
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div>
-                    Turret heat
-                </div>
-                <div class="progress-bar progress-bar--blue light">
-                    <div class="progress-bar--progress no-transition" style="width: @((int)((tankA.CurrentTurretHeat / 0.5f) * 100))%">
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="info card dark">
-            <div class="info--header">
-                <h4>
-                    @tankBName
-                </h4>
-                <span class="green chip"></span>
-            </div>
-            <div>
-                <div>
-                    Health
-                </div>
-                <div class="progress-bar progress-bar--@(tankB.Health > 50 ? "green" : "red") light">
-                    <div class="progress-bar--progress" style="width: @(tankB.Health)%">
-                    </div>
-                </div>
-            </div>
-            <div>
-                <div>
-                    Turret heat
-                </div>
-                <div class="progress-bar progress-bar--blue light">
-                    <div class="progress-bar--progress no-transition" style="width: @((int)((tankB.CurrentTurretHeat / 0.5f) * 100))%">
-                    </div>
-                </div>
-            </div>
-        </div>
+        @{
+            try
+            {
+                var tankA = Game.Tanks[0];
+                var tankAName = Game.ConnectedTanks[tankA.Id];
 
+                <div class="info card dark">
+                    <div class="info--header">
+                        <h4>
+                            @tankAName
+                        </h4>
+                        <span class="red chip"></span>
+                    </div>
+                    <div>
+                        <div>
+                            Health
+                        </div>
+                        <div class="progress-bar progress-bar--@(tankA.Health > 50 ? "green" : "red") light">
+                            <div class="progress-bar--progress" style="width: @(tankA.Health)%">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            Turret heat
+                        </div>
+                        <div class="progress-bar progress-bar--@(tankA.CurrentTurretHeat > 80 ? "red" : "blue") light">
+                            <div class="progress-bar--progress" style="width: @((int)tankA.CurrentTurretHeat)%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            catch
+            {
+
+            }
+
+            try
+            {
+                var tankB = Game.Tanks[1];
+                var tankBName = Game.ConnectedTanks[tankB.Id];
+                <div class="info card dark">
+                    <div class="info--header">
+                        <h4>
+                            @tankBName
+                        </h4>
+                        <span class="green chip"></span>
+                    </div>
+                    <div>
+                        <div>
+                            Health
+                        </div>
+                        <div class="progress-bar progress-bar--@(tankB.Health > 50 ? "green" : "red") light">
+                            <div class="progress-bar--progress" style="width: @(tankB.Health)%">
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            Turret heat
+                        </div>
+                        <div class="progress-bar progress-bar--@(tankB.CurrentTurretHeat > 80 ? "red" : "blue") light">
+                            <div class="progress-bar--progress" style="width: @((int)tankB.CurrentTurretHeat)%">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            catch
+            {
+            }
+        }
     </div>
 }
 

@@ -106,6 +106,11 @@ public class MainGame : Game, IMatchHubClient
     public Task OnTankUnavailable(Guid tankId)
     {
         ConnectedTanks.Remove(tankId);
+        if (Tanks.Any(tank => tank.Id == tankId))
+        {
+            IsGameOver = true;
+            Clear();
+        }
         OnMessage();
         return Task.CompletedTask;
     }
