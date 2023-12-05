@@ -97,26 +97,28 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
 {
     <div class="sidebar sidebar--slim">
 
-        <div class="info card dark">
-            <div class="info--header">
+        <div class="info">
+            <div class="info--header darker">
                 <h4>
                     Match info
                 </h4>
             </div>
-            <div>
+            <div class="info--body dark">
                 <div>
-                    Remaining
-                </div>
-                <div class="progress-bar progress-bar--blue light">
-                    <div class="progress-bar--progress" style="width: @((int)(100 - (100 * Game.Elapsed.TotalMilliseconds / 60000)))%">
+                    <div>
+                        Remaining
+                    </div>
+                    <div class="progress-bar progress-bar--blue light">
+                        <div class="progress-bar--progress" style="width: @((int)(100 - (100 * Game.Elapsed.TotalMilliseconds / 60000)))%">
+                        </div>
                     </div>
                 </div>
+                @if (Game.IsGameOver)
+                {
+                    <button @onclick="() => Client.Server.StartMatchAsync(TankAId.Value, TankBId.Value)" class="green">Restart</button>
+                    <button @onclick="() => Game.Clear()" class="red">Select new tanks</button>
+                }
             </div>
-            @if (Game.IsGameOver)
-            {
-                <button @onclick="() => Client.Server.StartMatchAsync(TankAId.Value, TankBId.Value)" class="green">Restart</button>
-                <button @onclick="() => Game.Clear()" class="red">Select new tanks</button>
-            }
         </div>
         @{
             try
@@ -124,28 +126,29 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
                 var tankA = Game.Tanks[0];
                 var tankAName = Game.ConnectedTanks[tankA.Id];
 
-                <div class="info card dark">
-                    <div class="info--header">
+                <div class="info">
+                    <div class="info--header red">
                         <h4>
                             @tankAName
                         </h4>
-                        <span class="red chip"></span>
                     </div>
-                    <div>
+                    <div class="info--body dark">
                         <div>
-                            Health
-                        </div>
-                        <div class="progress-bar progress-bar--@(tankA.Health > 50 ? "green" : "red") light">
-                            <div class="progress-bar--progress" style="width: @(tankA.Health)%">
+                            <div>
+                                Health
+                            </div>
+                            <div class="progress-bar progress-bar--@(tankA.Health > 50 ? "green" : "red") light">
+                                <div class="progress-bar--progress" style="width: @(tankA.Health)%">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div>
                         <div>
-                            Turret heat
-                        </div>
-                        <div class="progress-bar progress-bar--@(tankA.CurrentTurretHeat > 80 ? "red" : "blue") light">
-                            <div class="progress-bar--progress" style="width: @((int)tankA.CurrentTurretHeat)%">
+                            <div>
+                                Turret heat
+                            </div>
+                            <div class="progress-bar progress-bar--@(tankA.CurrentTurretHeat > 80 ? "red" : "blue") light">
+                                <div class="progress-bar--progress" style="width: @((int)tankA.CurrentTurretHeat)%">
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -160,28 +163,29 @@ else if (Game.ConnectedTanks.Any() && Game.Tanks.Count == 2)
             {
                 var tankB = Game.Tanks[1];
                 var tankBName = Game.ConnectedTanks[tankB.Id];
-                <div class="info card dark">
-                    <div class="info--header">
+                <div class="info">
+                    <div class="info--header green">
                         <h4>
                             @tankBName
                         </h4>
-                        <span class="green chip"></span>
                     </div>
-                    <div>
+                    <div class="info--body dark">
                         <div>
-                            Health
-                        </div>
-                        <div class="progress-bar progress-bar--@(tankB.Health > 50 ? "green" : "red") light">
-                            <div class="progress-bar--progress" style="width: @(tankB.Health)%">
+                            <div>
+                                Health
+                            </div>
+                            <div class="progress-bar progress-bar--@(tankB.Health > 50 ? "green" : "red") light">
+                                <div class="progress-bar--progress" style="width: @(tankB.Health)%">
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    <div>
                         <div>
-                            Turret heat
-                        </div>
-                        <div class="progress-bar progress-bar--@(tankB.CurrentTurretHeat > 80 ? "red" : "blue") light">
-                            <div class="progress-bar--progress" style="width: @((int)tankB.CurrentTurretHeat)%">
+                            <div>
+                                Turret heat
+                            </div>
+                            <div class="progress-bar progress-bar--@(tankB.CurrentTurretHeat > 80 ? "red" : "blue") light">
+                                <div class="progress-bar--progress" style="width: @((int)tankB.CurrentTurretHeat)%">
+                                </div>
                             </div>
                         </div>
                     </div>

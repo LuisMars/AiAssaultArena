@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <Compile Include="Arena\EntityDrawer.cs" />
+    <Compile Include="BlazorHost.cs" />
     <Compile Include="Helpers\EnumerableHelpers.cs" />
     <Compile Include="Hub\Client.cs" />
     <Compile Include="Pages\Index.razor.cs" />

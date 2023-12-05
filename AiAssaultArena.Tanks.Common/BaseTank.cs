@@ -14,6 +14,8 @@ public abstract class BaseTank(string name) : ITankClient, IDisposable
     protected ParametersResponse? Parameters { get; set; }
     public string Name { get; } = name;
 
+    private readonly object _updateLock = new();
+
     internal void Setup(string url)
     {
         _hubConnection = new HubConnectionBuilder()
@@ -67,9 +69,9 @@ public abstract class BaseTank(string name) : ITankClient, IDisposable
         return OnUpdate(gameStateResponse, sensorResponse);
     }
 
-    protected Task SendAsync(TankMoveParameters parameters)
+    protected Task SendAsync(TankResponse gameStateResponse, TankMoveParameters parameters)
     {
-        return _server.SendUpdate(parameters);
+        return _server.SendUpdate(parameters with { Timestamp = DateTime.UtcNow, MessageId = gameStateResponse.MessageId });
     }
 
     protected abstract Task OnUpdate(TankResponse gameStateResponse, SensorResponse? sensorResponse);

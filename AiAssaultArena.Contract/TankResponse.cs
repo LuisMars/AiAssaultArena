@@ -12,4 +12,7 @@ public record TankResponse
     public Guid Id { get; set; }
     public float AngularVelocity { get; set; }
     public float CurrentTurretHeat { get; set; }
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public float RoundTripTime { get; set; }
+    public Guid MessageId { get; set; }
 }

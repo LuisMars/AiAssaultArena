@@ -16,7 +16,8 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, s
     internal string WebClientConnectionId { get; set; } = webClientConnectionId;
     internal Dictionary<Guid, string> TankConnectionIds { get; set; } = tankConnectionIds;
     private IHubContext<MatchHub, IMatchServer> Context { get; set; } = context;
-
+    private Dictionary<Guid, float> RoundTripTimes { get; set; } = new();
+    private Dictionary<Guid, DateTime> MessageTimes { get; set; } = new();
     public bool HasEnded { get; set; }
 
     private readonly Action<Match> _onRoundEnd = onRoundEnd;
@@ -31,7 +32,10 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, s
             ArenaWidth = Width,
             ArenaHeight = Height
         };
-
+        foreach (var tankId in TankConnectionIds.Keys)
+        {
+            RoundTripTimes[tankId] = 0;
+        }
         await Context.Clients.Client(WebClientConnectionId).OnMatchStart(parameters);
         await Context.Clients.Clients(TankConnectionIds.Values).OnMatchStart(parameters);
         _ = ExecuteAsync(_runner, _cancellationTokenSource.Token);
@@ -67,15 +71,18 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, s
                 }
 
                 stopwatch.Restart();
+
                 runner.Update(deltaSeconds);
                 updates++;
                 var updatesPerSecond = updates / (ulong)(1 + totalTime.Elapsed.TotalSeconds);
-                var gameStateResponse = runner.GetGameStateResponse(totalTime.Elapsed, updatesPerSecond);
+                var messageId = Guid.NewGuid();
+                MessageTimes[messageId] = DateTime.UtcNow;
+                var gameStateResponse = runner.GetGameStateResponse(totalTime.Elapsed, updatesPerSecond, RoundTripTimes, messageId);
 
                 // Send the game state response without awaiting
                 updateElapsed -= frameRate;
 
-                await Context.Clients.Client(WebClientConnectionId).OnGameUpdated(gameStateResponse);
+                _ = Context.Clients.Client(WebClientConnectionId).OnGameUpdated(gameStateResponse);
 
                 foreach (var tank in _runner.Tanks)
                 {
@@ -83,7 +90,7 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, s
 
                     if (tank is not null)
                     {
-                        await Context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(), runner.Sensors[tank.Id].ToResponse());
+                        _ = Context.Clients.Client(connectionId).OnTankStateUpdated(tank.ToResponse(RoundTripTimes[tank.Id], messageId), runner.Sensors[tank.Id].ToResponse());
                     }
                 }
 
@@ -105,6 +112,9 @@ public class Match(IHubContext<MatchHub, IMatchServer> context, Runner runner, s
 
     public void UpdateTank(Guid id, TankMoveParameters parameters)
     {
+        var originalTimestamp = MessageTimes[parameters.MessageId];
+        var rtt = parameters.Timestamp - originalTimestamp;
+        RoundTripTimes[id] = (float)rtt.TotalSeconds;
         _runner.UpdateTank(id, parameters);
     }
 }

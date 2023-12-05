@@ -32,15 +32,17 @@ public class RandomTank : BaseTank
         // Movement logic towards the target position
         var directionToTarget = Vector2.Normalize(CurrentTargetPosition - position);
         var angleToTarget = MathF.Atan2(directionToTarget.Y, directionToTarget.X);
-
-        return SendAsync(new TankMoveParameters
-        {
-            TurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.BodyRotation),
-            Acceleration = 1, // Adjust as needed
-            TurretTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.TurretRotation),
-            SensorTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.SensorRotation),
-            Shoot = Random.Shared.NextSingle() > 0.9f
-        });
+        var turnDirection = Math.Clamp(CalculateTurnDirection(angleToTarget, gameStateResponse.BodyRotation) * 2, -1, 1);
+        return SendAsync(
+            gameStateResponse,
+            new TankMoveParameters
+            {
+                TurnDirection = turnDirection,
+                Acceleration = Math.Clamp(2 - MathF.Abs(turnDirection), -1, 1),
+                TurretTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.TurretRotation),
+                SensorTurnDirection = CalculateTurnDirection(angleToTarget, gameStateResponse.SensorRotation),
+                Shoot = sensorResponse is not null
+            });
     }
 
     private Vector2 GenerateRandomPosition()

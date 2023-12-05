@@ -150,15 +150,15 @@
     --blue-box-shadow-inner: inset var(--inner-shadow-size) var(--inner-shadow-size) 0 0 var(--blue-bg-light), inset var(--inner-shadow-dark-size) var(--inner-shadow-dark-size) 0 0 var(--blue-bg-dark);
     /* card */
     --card-padding: 2rem;
-    --card-border-radius: 0;
+    --card-border-radius: 1rem;
     --border-size: 1px;
     /* button */
     --button-padding: 0.5rem 1.5rem;
-    --button-border-radius: 0;
+    --button-border-radius: 0.75rem;
     /* other stuff */
     /*--box-shadow: 0 0.5rem 1rem 0.25rem #00000040;*/
     --box-shadow: 4px 4px 0 0 #00000040;
-    --box-shadow-hover: 0 0 0 0 #00000040;
+    --box-shadow-hover: 2px 2px 0 -1px #00000040;
     --transition: all 250ms ease;
 }
 
@@ -353,14 +353,28 @@ button:not(:disabled).blue:hover {
 }
 
 .info {
-    padding: 1rem;
-    gap: 1rem;
     display: flex;
     flex-direction: column;
 }
 
+.info--body,
 .info--header {
     position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.info--header {
+    border-top-left-radius: var(--card-border-radius);
+    border-top-right-radius: var(--card-border-radius);
+    align-items: center;
+    padding: 0.75rem 2rem
+}
+.info--body {
+    border-bottom-left-radius: var(--card-border-radius);
+    border-bottom-right-radius: var(--card-border-radius);
+    padding: 1rem;
 }
 .chip {
     height: 1rem;
@@ -379,11 +393,13 @@ button:not(:disabled).blue:hover {
 
 .progress-bar {
     height: 1rem;
+    border-radius: 0.5rem;
     border: none;
 }
 
 .progress-bar--progress {
     height: 1rem;
+    border-radius: 0.5rem;
     width: 0%;
     transition: width 500ms linear;
 }

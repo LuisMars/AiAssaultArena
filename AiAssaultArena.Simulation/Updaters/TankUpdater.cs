@@ -7,14 +7,8 @@ public class TankUpdater
 {
     public static void Update(float deltaSeconds, TankEntity tank)
     {
-        if (tank.IsOverheated)
-        {
-            tank.CurrentTurretHeat = MathF.Max(0, tank.CurrentTurretHeat - TankEntity.OverheatedHeatDissipationRate * deltaSeconds);
-        }
-        else
-        {
-            tank.CurrentTurretHeat = MathF.Max(0, tank.CurrentTurretHeat - TankEntity.HeatDissipationRate * deltaSeconds);
-        }
+        tank.CurrentTurretHeat = MathF.Max(0, tank.CurrentTurretHeat * MathF.Exp(-TankEntity.HeatDissipationRate * deltaSeconds));
+
         // Apply angular acceleration
         tank.AngularVelocity += tank.AngularAcceleration * deltaSeconds;
         tank.AngularVelocity = tank.AngularVelocity.Clamp(TankEntity.MaxAngularVelocity);
@@ -29,6 +23,16 @@ public class TankUpdater
         // Calculate the direction of the tank's forward movement
         var forwardDirection = new Vector2(1, 0).Rotate(tank.BodyRotation);
 
+        // Update the position based on the velocity
+        tank.Velocity += new Vector2(0, tank.Acceleration).Rotate(tank.BodyRotation) * deltaSeconds;
+
+
+        tank.Velocity = tank.Velocity.Truncate(TankEntity.MaxSpeed);
+
+        // Apply friction to slow down the tank
+        var frictionFactor = MathF.Pow(TankEntity.Friction, deltaSeconds);
+        tank.Velocity *= frictionFactor;
+
         // Calculate the dot product of the tank's velocity and forward direction
         var dotProduct = Vector2.Dot(tank.Velocity, forwardDirection);
 
@@ -37,14 +41,6 @@ public class TankUpdater
         {
             tank.Velocity -= forwardDirection * dotProduct * (1 - TankEntity.LateralDamping);
         }
-
-        // Update the position based on the velocity
-        tank.Velocity += new Vector2(0, tank.Acceleration).Rotate(tank.BodyRotation) * deltaSeconds;
-        tank.Velocity = tank.Velocity.Truncate(TankEntity.MaxSpeed);
-
-        // Apply friction to slow down the tank
-        var frictionFactor = MathF.Pow(TankEntity.Friction, deltaSeconds);
-        tank.Velocity *= frictionFactor;
 
         // Update position
         tank.Position += tank.Velocity * deltaSeconds;

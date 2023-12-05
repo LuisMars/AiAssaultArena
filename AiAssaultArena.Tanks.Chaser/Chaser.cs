@@ -3,11 +3,11 @@ using AiAssaultArena.Tanks.Common;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace AiAssaultArena.Tanks.Tracker;
+namespace AiAssaultArena.Tanks.Chaser;
 
-public class Tracker() : BaseTank("Tracker Tank")
+public class Chaser() : BaseTank("Chaser Tank")
 {
-    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 0, TurnDirection = 0, TurretTurnDirection = 1f, SensorTurnDirection = 1f };
+    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 1f, TurnDirection = 1f, TurretTurnDirection = 1f, SensorTurnDirection = 1f };
     private Vector2 Position { get; set; }
     private Vector2 PreviousLastKnownPosition { get; set; }
     private Vector2 LastKnownPosition { get; set; }
@@ -27,8 +27,9 @@ public class Tracker() : BaseTank("Tracker Tank")
         return Random.Shared.NextSingle() - 0.5f;
     }
 
-    protected override async Task OnUpdate(TankResponse tankResponse, SensorResponse? sensorResponse)
+    protected override Task OnUpdate(TankResponse tankResponse, SensorResponse? sensorResponse)
     {
+
         var isTracking = sensorResponse is not null;
         UpdateTankInfo(tankResponse, sensorResponse);
         var futurePosition = CalculateFuturePosition();
@@ -52,7 +53,13 @@ public class Tracker() : BaseTank("Tracker Tank")
             {
                 _moveParameters.TurretTurnDirection += RandomNormal() * 0.1f;
             }
-            _moveParameters.Shoot = isReadyToShoot && timeToImpact < 1f && tankResponse.CurrentTurretHeat < 70;
+            _moveParameters.Shoot = isReadyToShoot && timeToImpact < 0.25f && tankResponse.CurrentTurretHeat < 70;
+
+            var bodyAngleToLastKnownPosition = GetHeading(possibleFuturePositionAngle - tankResponse.BodyRotation);
+            _moveParameters.TurnDirection = MathF.Sign(bodyAngleToLastKnownPosition);
+
+            var distance = (Position - predictedPosition).Length();
+            _moveParameters.Acceleration = Math.Clamp((distance - 100) / 50, -1, 1);
         }
         else if (WasTracking)
         {
@@ -72,6 +79,8 @@ public class Tracker() : BaseTank("Tracker Tank")
             _moveParameters.TurretTurnDirection = (turretAngleDifference > 0 ? -1f : 1f) + RandomNormal() * 0.1f;
 
             LastTrackedDirection = _moveParameters.SensorTurnDirection > 0 ? 1 : -1;
+
+            _moveParameters.Acceleration *= -1;
         }
         else
         {
@@ -80,7 +89,7 @@ public class Tracker() : BaseTank("Tracker Tank")
         }
 
         WasTracking = isTracking;
-        await SendAsync(tankResponse, _moveParameters);
+        return SendAsync(tankResponse, _moveParameters);
     }
     private int SensorResponses { get; set; }
     private void UpdateTankInfo(TankResponse gameStateResponse, SensorResponse? sensorResponse)
@@ -90,12 +99,12 @@ public class Tracker() : BaseTank("Tracker Tank")
         if (sensorResponse is not null)
         {
             SensorResponses++;
+
             var timeDelta = 1f / 60;
             if (LastSeen is not null)
             {
                 timeDelta = (float)(_stopwatch.Elapsed - LastSeen.Value).TotalSeconds;
             }
-            timeDelta += gameStateResponse.RoundTripTime;
             LastSeen = _stopwatch.Elapsed;
 
             var pastPosition = PreviousLastKnownPosition;

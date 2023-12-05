@@ -3,16 +3,16 @@ using AiAssaultArena.Simulation.Math;
 
 namespace AiAssaultArena.Simulation.Entities;
 
-public class TankEntity
+public class TankEntity(Vector2 position, Guid? id)
 {
-    public Vector2 Position { get; set; } = new();
+    public Vector2 Position { get; set; } = position;
     public float Acceleration { get; set; }
     public Vector2 Velocity { get; set; } = new();
     public float BodyRotation { get; set; }
     public float TurretRotation { get; set; }
     public float SensorRotation { get; set; }
     public float Health { get; set; } = MaxHealth;
-    public Guid Id { get; private set; }
+    public Guid Id { get; private set; } = id ?? Guid.NewGuid();
     public float AngularAcceleration { get; set; }
     public float AngularVelocity { get; set; }
 
@@ -36,7 +36,7 @@ public class TankEntity
     public const float Mass = Density * Width * Height * 40;
     public const float TurretLength = 50;
 
-    public const float MaxAcceleration = 500f;
+    public const float MaxAcceleration = 250f;
     public const float MaxSpeed = 125f;
     public const float MaxAngularAcceleration = 50f;
     public const float MaxAngularVelocity = 1f;
@@ -46,22 +46,15 @@ public class TankEntity
 
     public const float MaxSensorAngularVelocity = 1f;
     public const float MaxSensorAngularAcceleration = 100f;
-    
+
     public const float Friction = 0.1f;
     public const float AngularFriction = 0.00001f;
     public const float LateralDamping = 0.25f;
 
     public const float MaxHeat = 100.0f; // Maximum heat capacity
     public const float HeatPerShot = 10.0f; // Heat generated per shot
-    public const float HeatDissipationRate = 5f; // Heat dissipation per second
-    public const float OverheatedHeatDissipationRate = 1f; // Heat dissipation per second
+    public const float HeatDissipationRate = 0.15f;
     public const float OverheatThreshold = 80.0f; // Overheat threshold
-
-    public TankEntity(Vector2 position, Guid? id)
-    {
-        Position = position;
-        Id = id ?? Guid.NewGuid();
-    }
 
     public void Move(TankMoveParameters parameters)
     {
@@ -80,13 +73,19 @@ public class TankEntity
     {
         if (CurrentTurretHeat >= MaxHeat)
         {
+            Health -= 1;
             return null;
         }
-        if (CurrentTurretHeat >= OverheatThreshold && Random.Shared.NextSingle() > 0.1f)
+
+        var failShot = CurrentTurretHeat >= OverheatThreshold && Random.Shared.NextSingle() > 0.5f;
+        
+        var heatIncrease = HeatPerShot * (1 + MathF.Pow(CurrentTurretHeat / MaxHeat, 2));
+        CurrentTurretHeat = MathF.Min(MaxHeat, CurrentTurretHeat + heatIncrease);
+
+        if (failShot)
         {
             return null;
         }
-        CurrentTurretHeat = MathF.Min(MaxHeat, CurrentTurretHeat + HeatPerShot);
 
         var bulletStartPosition = Position + new Vector2(0, TurretLength).Rotate(TurretRotation); // Offset to start from turret
         var bullet = new BulletEntity(bulletStartPosition, Velocity, TurretRotation, Id);

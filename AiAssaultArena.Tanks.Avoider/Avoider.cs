@@ -3,11 +3,11 @@ using AiAssaultArena.Tanks.Common;
 using System.Diagnostics;
 using System.Numerics;
 
-namespace AiAssaultArena.Tanks.Tracker;
+namespace AiAssaultArena.Tanks.Avoider;
 
-public class Tracker() : BaseTank("Tracker Tank")
+public class Avoider() : BaseTank("Avoider Tank")
 {
-    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 0, TurnDirection = 0, TurretTurnDirection = 1f, SensorTurnDirection = 1f };
+    private readonly TankMoveParameters _moveParameters = new() { Acceleration = 1f, TurnDirection = 1f, TurretTurnDirection = 1f, SensorTurnDirection = 1f };
     private Vector2 Position { get; set; }
     private Vector2 PreviousLastKnownPosition { get; set; }
     private Vector2 LastKnownPosition { get; set; }
@@ -27,8 +27,9 @@ public class Tracker() : BaseTank("Tracker Tank")
         return Random.Shared.NextSingle() - 0.5f;
     }
 
-    protected override async Task OnUpdate(TankResponse tankResponse, SensorResponse? sensorResponse)
+    protected override Task OnUpdate(TankResponse tankResponse, SensorResponse? sensorResponse)
     {
+
         var isTracking = sensorResponse is not null;
         UpdateTankInfo(tankResponse, sensorResponse);
         var futurePosition = CalculateFuturePosition();
@@ -50,9 +51,22 @@ public class Tracker() : BaseTank("Tracker Tank")
             var isReadyToShoot = SensorResponses >= 3 && MathF.Abs(turretAngleToFuturePosition) < MathF.PI / 16;
             if (isReadyToShoot)
             {
-                _moveParameters.TurretTurnDirection += RandomNormal() * 0.1f;
+                //_moveParameters.TurretTurnDirection += RandomNormal() * 0.1f;
             }
-            _moveParameters.Shoot = isReadyToShoot && timeToImpact < 1f && tankResponse.CurrentTurretHeat < 70;
+            _moveParameters.Shoot = isReadyToShoot && timeToImpact < 10f && tankResponse.CurrentTurretHeat < 70;
+
+            var bodyAngleToLastKnownPosition = GetHeading(possibleFuturePositionAngle - tankResponse.BodyRotation + (MathF.PI * 0.5f));
+            _moveParameters.TurnDirection = MathF.Sign(bodyAngleToLastKnownPosition);
+
+            var distance = (Position - predictedPosition).Length();
+            _moveParameters.TurnDirection += distance > 300 ? 0.5f : -0.5f;
+            _moveParameters.Acceleration += distance < 300 ? 0.5f : -0.5f;
+            if (EnemyShooting)
+            {
+                Console.WriteLine("Avoiding");
+
+                _moveParameters.Acceleration *= -1;
+            }
         }
         else if (WasTracking)
         {
@@ -72,6 +86,8 @@ public class Tracker() : BaseTank("Tracker Tank")
             _moveParameters.TurretTurnDirection = (turretAngleDifference > 0 ? -1f : 1f) + RandomNormal() * 0.1f;
 
             LastTrackedDirection = _moveParameters.SensorTurnDirection > 0 ? 1 : -1;
+
+            _moveParameters.Acceleration *= -1;
         }
         else
         {
@@ -80,9 +96,11 @@ public class Tracker() : BaseTank("Tracker Tank")
         }
 
         WasTracking = isTracking;
-        await SendAsync(tankResponse, _moveParameters);
+        return SendAsync(tankResponse, _moveParameters);
     }
     private int SensorResponses { get; set; }
+    private float LastTurretHeat { get; set; } = 100;
+    private bool EnemyShooting { get; set; }
     private void UpdateTankInfo(TankResponse gameStateResponse, SensorResponse? sensorResponse)
     {
         Position = new Vector2(gameStateResponse.Position.X, gameStateResponse.Position.Y);
@@ -90,12 +108,12 @@ public class Tracker() : BaseTank("Tracker Tank")
         if (sensorResponse is not null)
         {
             SensorResponses++;
+
             var timeDelta = 1f / 60;
             if (LastSeen is not null)
             {
                 timeDelta = (float)(_stopwatch.Elapsed - LastSeen.Value).TotalSeconds;
             }
-            timeDelta += gameStateResponse.RoundTripTime;
             LastSeen = _stopwatch.Elapsed;
 
             var pastPosition = PreviousLastKnownPosition;
@@ -105,6 +123,8 @@ public class Tracker() : BaseTank("Tracker Tank")
             var previousVelocity = (PreviousLastKnownPosition - pastPosition) / timeDelta;
             var changeInVelocity = PerceivedVelocity - previousVelocity;
             PerceivedAcceleration = changeInVelocity / timeDelta;
+            EnemyShooting = LastTurretHeat < sensorResponse.TurretHeat;
+            LastTurretHeat = sensorResponse.TurretHeat;
         }
         else
         {
@@ -152,7 +172,7 @@ public class Tracker() : BaseTank("Tracker Tank")
 
         var enemyAngle = CalculateAngle(Position, LastKnownPosition);
         var bulletStartPosition = Position + new Vector2(turretLength * MathF.Cos(enemyAngle), turretLength * MathF.Sin(enemyAngle));
-        var totalBulletVelocity = new Vector2(gameStateResponse.Velocity.X, gameStateResponse.Velocity.Y) + bulletSpeed * new Vector2(MathF.Cos(enemyAngle), MathF.Sin(enemyAngle));
+        var totalBulletVelocity = new Vector2(gameStateResponse.Velocity.X, gameStateResponse.Velocity.Y) + (bulletSpeed * new Vector2(MathF.Cos(enemyAngle), MathF.Sin(enemyAngle)));
 
         return CalculateIntersectionTime(bulletStartPosition, totalBulletVelocity, LastKnownPosition, PerceivedVelocity, PerceivedAcceleration);
     }

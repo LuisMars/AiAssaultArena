@@ -23,7 +23,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Random
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Tracker", "AiAssaultArena.Tanks.Tracker\AiAssaultArena.Tanks.Tracker.csproj", "{9DB4CCB2-C0A3-484D-8392-06E79C85455F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Tanks.Corners", "AiAssaultArena.Tanks.Corners\AiAssaultArena.Tanks.Corners.csproj", "{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Corners", "AiAssaultArena.Tanks.Corners\AiAssaultArena.Tanks.Corners.csproj", "{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AiAssaultArena.Tanks.Chaser", "AiAssaultArena.Tanks.Chaser\AiAssaultArena.Tanks.Chaser.csproj", "{3324119E-566F-4302-AD6A-0A1C22960283}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.Tanks.Avoider", "AiAssaultArena.Tanks.Avoider\AiAssaultArena.Tanks.Avoider.csproj", "{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AiAssaultArena.CLI", "AiAssaultArena.CLI\AiAssaultArena.CLI.csproj", "{599F3214-B2AC-4456-AA4A-B5FE03AE72CF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -71,6 +77,18 @@ Global
 		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3324119E-566F-4302-AD6A-0A1C22960283}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3324119E-566F-4302-AD6A-0A1C22960283}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3324119E-566F-4302-AD6A-0A1C22960283}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3324119E-566F-4302-AD6A-0A1C22960283}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{599F3214-B2AC-4456-AA4A-B5FE03AE72CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{599F3214-B2AC-4456-AA4A-B5FE03AE72CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{599F3214-B2AC-4456-AA4A-B5FE03AE72CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{599F3214-B2AC-4456-AA4A-B5FE03AE72CF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -80,6 +98,8 @@ Global
 		{2CFEC8E3-13D9-48F2-BDEF-BB729E46E2D7} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 		{9DB4CCB2-C0A3-484D-8392-06E79C85455F} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 		{C4AD5E84-772F-4DAD-B2ED-FEBC2029FA91} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
+		{3324119E-566F-4302-AD6A-0A1C22960283} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
+		{9F4DDBE6-93CB-4B7F-B7BB-A7BEE254EDD5} = {0EEC3FAF-F9AC-4919-9030-E16EAB8440A7}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D94BCF77-39FE-404A-9ABC-FFC18DC2340D}

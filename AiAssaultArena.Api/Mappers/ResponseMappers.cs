@@ -22,7 +22,7 @@ public static class ResponseMappers
         };
     }
 
-    public static TankResponse ToResponse(this TankEntity tank)
+    public static TankResponse ToResponse(this TankEntity tank, float roundTripTime, Guid messageId)
     {
         return new TankResponse
         {
@@ -35,7 +35,9 @@ public static class ResponseMappers
             SensorRotation = tank.SensorRotation,
             Health = tank.Health,
             AngularVelocity = tank.AngularVelocity,
-            CurrentTurretHeat = tank.CurrentTurretHeat
+            CurrentTurretHeat = tank.CurrentTurretHeat,
+            RoundTripTime = roundTripTime,
+            MessageId = messageId
         };
     }
 
@@ -48,6 +50,7 @@ public static class ResponseMappers
         return new SensorResponse
         {
             Health = sensedTank.Tank.Health,
+            TurretHeat = sensedTank.Tank.CurrentTurretHeat,
             Position = sensedTank.Position.ToResponse(),
             TankId = sensedTank.Tank.Id
         };
@@ -69,11 +72,11 @@ public static class ResponseMappers
         };
     }
 
-    public static GameStateResponse GetGameStateResponse(this Runner runner, TimeSpan elapsed, ulong updatesPerSecond)
+    public static GameStateResponse GetGameStateResponse(this Runner runner, TimeSpan elapsed, ulong updatesPerSecond, Dictionary<Guid, float> roundTripTimes, Guid messageId)
     {
         return new GameStateResponse
         {
-            Tanks = runner.Tanks.Select(t => t.ToResponse()).ToList(),
+            Tanks = runner.Tanks.Select(t => t.ToResponse(roundTripTimes[t.Id], messageId)).ToList(),
             Bullets = runner.Bullets.Values.Select(t => t.ToResponse()).ToList(),
             Elapsed = elapsed,
             UpdatesPerSecond = updatesPerSecond
