@@ -1,6 +1,7 @@
 ﻿using AiAssaultArena.Contract;
 using AiAssaultArena.Tanks.Common;
 using System.Diagnostics;
+using System.Net.NetworkInformation;
 using System.Numerics;
 
 namespace AiAssaultArena.Tanks.Avoider;
@@ -32,12 +33,12 @@ public class Avoider() : BaseTank("Avoider Tank")
 
         var isTracking = sensorResponse is not null;
         UpdateTankInfo(tankResponse, sensorResponse);
-        var futurePosition = CalculateFuturePosition();
+        var futurePosition = CalculateFuturePosition(IntersectionStatus.FutureIntersection);
 
         if (isTracking)
         {
-            var timeToImpact = TimeToImpact(tankResponse);
-            var predictedPosition = CalculateFuturePosition(timeToImpact);
+            var timeToImpact = TimeToImpact(tankResponse, out var status);
+            var predictedPosition = CalculateFuturePosition(status, timeToImpact);
 
             // Calculate angles taking into account the body rotation
             var possibleFuturePositionAngle = CalculateAngle(Position, predictedPosition);
@@ -132,15 +133,14 @@ public class Avoider() : BaseTank("Avoider Tank")
         }
     }
 
-    private Vector2 CalculateFuturePosition(float inSeconds = 1 / 60f)
+    private Vector2 CalculateFuturePosition(IntersectionStatus status, float? inSeconds = 1 / 60f)
     {
-        if (float.IsNaN(inSeconds) || float.IsInfinity(inSeconds))
+        if (inSeconds.HasValue && (float.IsNaN(inSeconds.Value) || float.IsInfinity(inSeconds.Value)))
         {
-            Console.WriteLine("invalid time");
             return LastKnownPosition + PerceivedVelocity;
         }
 
-        if (inSeconds < 0)
+        if (!inSeconds.HasValue || status == IntersectionStatus.NoData || status == IntersectionStatus.NoIntersection)
         {
             return LastKnownPosition + PerceivedVelocity;
         }
@@ -151,8 +151,8 @@ public class Avoider() : BaseTank("Avoider Tank")
 
         // Calculate future position using the kinematic equation
         var futurePosition = LastKnownPosition
-                                 + PerceivedVelocity * inSeconds
-                                 + 0.5f * PerceivedAcceleration * inSeconds * inSeconds;
+                                 + PerceivedVelocity * inSeconds.Value
+                                 + 0.5f * PerceivedAcceleration * inSeconds.Value * inSeconds.Value;
 
         // Clamp values if necessary (based on your game's logic)
         futurePosition.X = Math.Clamp(futurePosition.X, -maxX, maxX);
@@ -161,11 +161,12 @@ public class Avoider() : BaseTank("Avoider Tank")
         return futurePosition;
     }
 
-    public float TimeToImpact(TankResponse gameStateResponse)
+    public float? TimeToImpact(TankResponse gameStateResponse, out IntersectionStatus status)
     {
         if (SensorResponses < 3)
         {
-            return -1;
+            status = IntersectionStatus.NoData;
+            return null;
         }
         var turretLength = 50;
         var bulletSpeed = 450;
@@ -174,11 +175,12 @@ public class Avoider() : BaseTank("Avoider Tank")
         var bulletStartPosition = Position + new Vector2(turretLength * MathF.Cos(enemyAngle), turretLength * MathF.Sin(enemyAngle));
         var totalBulletVelocity = new Vector2(gameStateResponse.Velocity.X, gameStateResponse.Velocity.Y) + (bulletSpeed * new Vector2(MathF.Cos(enemyAngle), MathF.Sin(enemyAngle)));
 
-        return CalculateIntersectionTime(bulletStartPosition, totalBulletVelocity, LastKnownPosition, PerceivedVelocity, PerceivedAcceleration);
+        return CalculateIntersectionTime(bulletStartPosition, totalBulletVelocity, LastKnownPosition, PerceivedVelocity, PerceivedAcceleration, out status);
     }
 
-    private float CalculateIntersectionTime(Vector2 bulletPosition, Vector2 bulletVelocity,
-                                        Vector2 targetPosition, Vector2 targetVelocity, Vector2 targetAcceleration)
+    private float? CalculateIntersectionTime(Vector2 bulletPosition, Vector2 bulletVelocity,
+                                        Vector2 targetPosition, Vector2 targetVelocity, Vector2 targetAcceleration,
+                                        out IntersectionStatus status)
     {
         var relativeVelocity = bulletVelocity - targetVelocity;
         var relativePosition = bulletPosition - targetPosition;
@@ -192,43 +194,51 @@ public class Avoider() : BaseTank("Avoider Tank")
         {
             if (B == 0)
             {
-                Console.WriteLine("Bullet and target will never meet");
-                return -4.0f;
+                status = IntersectionStatus.NoIntersection;
+            }
+            else
+            {
+                status = IntersectionStatus.FutureIntersection;
             }
             var t = -C / B;
-            return t >= 0 ? t : -4.0f; // Return time if it's positive
+            if (t >= 0)
+            {
+                return t;
+            }
+            else
+            {
+                return null;
+            }
         }
 
         // Solve the quadratic equation
         var discriminant = B * B - 4 * A * C;
         if (discriminant < 0)
         {
-            Console.WriteLine("No real solutions, no intersection");
-            return -2.0f;
+            status = IntersectionStatus.NoIntersection;
+            return null;
         }
 
         var sqrtDiscriminant = MathF.Sqrt(discriminant);
         var t1 = (-B + sqrtDiscriminant) / (2 * A);
         var t2 = (-B - sqrtDiscriminant) / (2 * A);
 
-        // We are interested in the smallest positive solution
-        if (t1 < 0 && t2 < 0)
+        if (t1 < 0 || t2 < 0)
         {
-            Console.WriteLine("2 negative solutions");
-            return -3.0f;
-        }
-        if (t1 < 0)
-        {
-            t1 = float.MaxValue;
-        }
-        if (t2 < 0)
-        {
-            t2 = float.MaxValue;
+            status = IntersectionStatus.ImmediateIntersection;
+            return 0;
         }
 
+        status = IntersectionStatus.FutureIntersection;
         return Math.Min(t1, t2);
     }
-
+    public enum IntersectionStatus
+    {
+        NoData,
+        NoIntersection,
+        ImmediateIntersection,
+        FutureIntersection
+    }
 
     private static float CalculateAngle(Vector2 from, Vector2 to)
     {

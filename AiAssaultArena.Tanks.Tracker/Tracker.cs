@@ -194,8 +194,8 @@ public class Tracker() : BaseTank("Tracker Tank")
         // We are interested in the smallest positive solution
         if (t1 < 0 && t2 < 0)
         {
-            Console.WriteLine("2 negative solutions");
-            return -3.0f;
+            // inside
+            return float.Epsilon;
         }
         if (t1 < 0)
         {
